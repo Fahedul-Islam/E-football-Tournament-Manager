@@ -14,4 +14,5 @@ func (h *TournamentManagerHandler) RegisterRoutes(mux *http.ServeMux, manager *m
 	mux.Handle("POST /tournaments/reject", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.RejectParticipant)))
 	mux.Handle("POST /tournaments/addparticipant", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.AddParticipant)))
 	mux.Handle("POST /tournaments/removeparticipant", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.RemoveParticipant)))
+	mux.Handle("GET /tournaments/participants", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.GetAllParticipant)))
 }

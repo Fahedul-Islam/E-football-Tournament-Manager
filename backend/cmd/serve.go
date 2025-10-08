@@ -6,8 +6,10 @@ import (
 	"net/http"
 	"tournament-manager/config"
 	"tournament-manager/infra/db"
+	participantrepo "tournament-manager/repository/participant_repo"
 	tournamentmanagerrepo "tournament-manager/repository/tournament_manager_repo"
 	userrepo "tournament-manager/repository/user-repo"
+	"tournament-manager/rest/handler/participant"
 	tournamentmanager "tournament-manager/rest/handler/tournamentManager"
 	"tournament-manager/rest/handler/user"
 	"tournament-manager/rest/middleware"
@@ -43,6 +45,10 @@ func Serve() {
 	tournamentRepo := tournamentmanagerrepo.NewTournamentManagerRepo(dB)
 	tournamentHandler := tournamentmanager.NewTournamentManagerHandler(tournamentRepo)
 	tournamentHandler.RegisterRoutes(mux, middlewareManager)
+
+	participantrepo := participantrepo.NewParticipantRepo(dB)
+	participantHandler := participant.NewParticipantHandler(participantrepo)
+	participantHandler.RegisterRoutes(mux, middlewareManager)
 
 	wrappedMux := middlewareManager.WrappedMux(mux)
 
