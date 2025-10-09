@@ -2,7 +2,6 @@ package tournamentmanagerrepo
 
 import (
 	"database/sql"
-	"time"
 	"tournament-manager/domain"
 	tournamentmanager "tournament-manager/rest/handler/tournamentManager"
 )
@@ -19,20 +18,6 @@ func NewTournamentManagerRepo(db *sql.DB) TournamentManagerRepo {
 	return &tournamentManagerRepo{db: db}
 }
 
-func (r *tournamentManagerRepo) CreateTournament(created_by int, request domain.TournamentCreateRequest) error {
-	query := `INSERT INTO tournaments (name, description, tournament_type, max_players,  created_by, start_date, end_date) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
-	tournament := domain.Tournament{
-		Name:           request.Name,
-		Description:    request.Description,
-		TournamentType: request.TournamentType,
-		MaxPlayers:     request.MaxPlayers,
-		StartDate:      request.StartDate,
-		EndDate:        request.EndDate,
-		CreatedBy:      created_by,
-	}
-	return r.db.QueryRow(query, tournament.Name, tournament.Description, tournament.TournamentType, tournament.MaxPlayers, tournament.CreatedBy, tournament.StartDate, tournament.EndDate).Scan(&tournament.ID)
-}
-
 func (r *tournamentManagerRepo) GetTournamentByID(id int) (*domain.Tournament, error) {
 	var tournament domain.Tournament
 	query := `SELECT * FROM tournaments WHERE id = $1`
@@ -40,157 +25,4 @@ func (r *tournamentManagerRepo) GetTournamentByID(id int) (*domain.Tournament, e
 		return nil, err
 	}
 	return &tournament, nil
-}
-
-func (r *tournamentManagerRepo) GetAllTournaments(tournament_owner_id int) ([]*domain.Tournament, error) {
-	rows, err := r.db.Query("SELECT * FROM tournaments WHERE created_by = $1", tournament_owner_id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var tournaments []*domain.Tournament
-	for rows.Next() {
-		t := &domain.Tournament{}
-		if err := rows.Scan(&t.ID, &t.Name, &t.Description, &t.TournamentType, &t.MaxPlayers, &t.StartDate, &t.EndDate, &t.CreatedBy); err != nil {
-			return nil, err
-		}
-		tournaments = append(tournaments, t)
-	}
-	return tournaments, nil
-}
-
-func (r *tournamentManagerRepo) UpdateTournament(id int, tournament domain.TournamentCreateRequest) error {
-	_, err := r.db.Exec("UPDATE tournaments SET name = $1, description = $2, start_date = $3, end_date = $4 WHERE id = $5",
-		tournament.Name, tournament.Description, tournament.StartDate, tournament.EndDate, id)
-	return err
-}
-
-func (r *tournamentManagerRepo) DeleteTournament(tournament_owner_id int, id int) error {
-	var exists bool
-	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM tournaments WHERE id = $1 AND created_by = $2)", id, tournament_owner_id).Scan(&exists)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return sql.ErrNoRows
-	}
-	_, err = r.db.Exec("DELETE FROM tournaments WHERE id = $1", id)
-	return err
-}
-
-func (r *tournamentManagerRepo) ApproveParticipant(tournament_owner_id int, req domain.ParticipantRequest) error {
-	// Check if the tournament exists and is created by the tournament_owner_id
-	var exists bool
-	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM tournaments WHERE id = $1 AND created_by = $2)", req.TournamentID, tournament_owner_id).Scan(&exists)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return sql.ErrNoRows
-	}
-	// check if maximum participants reached
-	var count int
-	err = r.db.QueryRow("SELECT COUNT(*) FROM participants WHERE tournament_id = $1 AND status = 'approved'", req.TournamentID).Scan(&count)
-	if err != nil {
-		return err
-	}
-
-	var maxParticipants int
-	err = r.db.QueryRow("SELECT max_participants FROM tournaments WHERE id = $1", req.TournamentID).Scan(&maxParticipants)
-	if err != nil {
-		return err
-	}
-
-	if count >= maxParticipants {
-		return sql.ErrNoRows
-	}
-	_, err = r.db.Exec("UPDATE participants SET status = 'approved' WHERE user_id = $1 AND tournament_id = $2", req.UserID, req.TournamentID)
-	return err
-}
-
-func (r *tournamentManagerRepo) RejectParticipant(tournament_owner_id int, req domain.ParticipantRequest) error {
-	// Check if the tournament exists and is created by the tournament_owner_id
-	var exists bool
-	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM tournaments WHERE id = $1 AND created_by = $2)", req.TournamentID, tournament_owner_id).Scan(&exists)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return sql.ErrNoRows
-	}
-	_, err = r.db.Exec("UPDATE participants SET status = 'rejected' WHERE user_id = $1 AND tournament_id = $2", req.UserID, req.TournamentID)
-	return err
-}
-
-func (r *tournamentManagerRepo) AddParticipant(tournament_owner_id int, participant domain.ParticipantRequest) error {
-	// Check if the tournament exists and is created by the tournament_owner_id
-	var exists bool
-	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM tournaments WHERE id = $1 AND created_by = $2)", participant.TournamentID, tournament_owner_id).Scan(&exists)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return sql.ErrNoRows
-	}
-	// check if maximum participants reached
-	var count int
-	err = r.db.QueryRow("SELECT COUNT(*) FROM participants WHERE tournament_id = $1 AND status = 'approved'", participant.TournamentID).Scan(&count)
-	if err != nil {
-		return err
-	}
-
-	var maxParticipants int
-	err = r.db.QueryRow("SELECT max_players FROM tournaments WHERE id = $1", participant.TournamentID).Scan(&maxParticipants)
-	if err != nil {
-		return err
-	}
-
-	if count >= maxParticipants {
-		return sql.ErrNoRows
-	}
-	// Add participant with status 'approved'
-	now := time.Now().Format(time.RFC3339)
-	addedParticipant := domain.Participant{
-		UserID:       participant.UserID,
-		TournamentID: participant.TournamentID,
-		TeamName:     participant.TeamName,
-		Status:       "approved",
-		CreatedAt:    now,
-	}
-	query := `INSERT INTO participants (user_id, tournament_id, team_name, status, created_at) VALUES ($1, $2, $3, $4, $5) RETURNING id`
-	return r.db.QueryRow(query, addedParticipant.UserID, addedParticipant.TournamentID, addedParticipant.TeamName, addedParticipant.Status, addedParticipant.CreatedAt).Scan(&addedParticipant.ID)
-}
-
-func (r *tournamentManagerRepo) RemoveParticipant(tournament_owner_id int, req domain.ParticipantRequest) error {
-	// Check if the tournament exists and is created by the tournament_owner_id
-	var exists bool
-	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM tournaments WHERE id = $1 AND created_by = $2)", req.TournamentID, tournament_owner_id).Scan(&exists)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return sql.ErrNoRows
-	}
-	_, err = r.db.Exec("DELETE FROM participants WHERE user_id = $1 AND tournament_id = $2", req.UserID, req.TournamentID)
-	return err
-}
-
-func (r *tournamentManagerRepo) GetAllParticipant(tournament_id int) ([]*domain.Participant, error) {
-	query := `SELECT * FROM participants WHERE tournament_id=$1`
-	rows, err := r.db.Query(query, tournament_id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var participants []*domain.Participant
-	for rows.Next() {
-		p := &domain.Participant{}
-		if err := rows.Scan(&p.ID, &p.UserID, &p.TournamentID, &p.TeamName, &p.Status, &p.CreatedAt); err != nil {
-			return nil, err
-		}
-		participants = append(participants, p)
-	}
-	return participants, nil
 }

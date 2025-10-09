@@ -9,9 +9,15 @@ import (
 )
 
 func (h *TournamentManagerHandler) UpdateTournament(w http.ResponseWriter, r *http.Request) {
+	str_t_owner_id := r.Context().Value("user_id").(string)
+	tournament_owner_id, err := strconv.Atoi(str_t_owner_id)
+	if err != nil {
+		http.Error(w, "Invalid user id", http.StatusBadRequest)
+		return
+	}
 	var req domain.TournamentCreateRequest
-	tournament_id := r.URL.Query().Get("id")
-	id, err := strconv.Atoi(tournament_id)
+	id := r.URL.Query().Get("id")
+	tournament_id, err := strconv.Atoi(id)
 	if err != nil {
 		http.Error(w, "Invalid tournament ID", http.StatusBadRequest)
 		return
@@ -20,7 +26,7 @@ func (h *TournamentManagerHandler) UpdateTournament(w http.ResponseWriter, r *ht
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := h.tournamentService.UpdateTournament(id, req); err != nil {
+	if err := h.tournamentService.UpdateTournament(tournament_owner_id,tournament_id, req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
