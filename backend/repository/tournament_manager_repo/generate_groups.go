@@ -1,6 +1,7 @@
 package tournamentmanagerrepo
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 	"tournament-manager/domain"
@@ -28,6 +29,10 @@ func (r *tournamentManagerRepo) GenerateGroups(tournament_id int, groupCount int
 	_, err = tx.Exec("DELETE FROM groups WHERE tournament_id = $1", tournament_id)
 	if err != nil {
 		return err
+	}
+
+	if len(approvedParticipants) < groupCount*2 {
+		return fmt.Errorf("not enough participants to create groups")
 	}
 
 	// Step 2: Create groups

@@ -5,7 +5,12 @@ import (
 	"tournament-manager/domain"
 )
 
-func (r *tournamentManagerRepo) CreateMatchSchedules(tournament_id int, approvedParticipants []*domain.Participant) error {
+func (r *tournamentManagerRepo) CreateMatchSchedules(tournament_id int, groupCount int, approvedParticipants []*domain.Participant) error {
+
+	err := r.GenerateGroups(tournament_id, groupCount, approvedParticipants)
+	if err != nil {
+		return fmt.Errorf("failed to generate groups: %w", err)
+	}
 	// 1️⃣ Fetch all group IDs for this tournament
 	rows, err := r.db.Query("SELECT id FROM groups WHERE tournament_id=$1", tournament_id)
 	if err != nil {

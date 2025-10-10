@@ -12,7 +12,7 @@ func (r *tournamentManagerRepo) GetAllMatches(tournament_id int) ([]*domain.Matc
 	var matches []*domain.Match
 	for rows.Next() {
 		m := &domain.Match{}
-		if err := rows.Scan(&m.ID, &m.TournamentID, &m.GroupID, &m.Round, &m.ParticipantAID, &m.ParticipantBID, &m.ScoreA, &m.ScoreB, &m.MatchDate, &m.CreatedAt, &m.Status, &m.WinnerID); err != nil {
+		if err := rows.Scan(&m.ID, &m.TournamentID, &m.GroupID, &m.Round, &m.ParticipantAID, &m.ParticipantBID, &m.ScoreA, &m.ScoreB, &m.MatchDate, &m.CreatedAt, &m.Status); err != nil {
 			return nil, err
 		}
 		matches = append(matches, m)

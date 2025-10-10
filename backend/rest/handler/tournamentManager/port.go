@@ -14,7 +14,7 @@ type Service interface {
 	RemoveParticipant(tournament_owner_id int, req domain.ParticipantRequest) error
 	GetAllParticipant(tournament_id int) ([]*domain.Participant, error)
 	GetApprovedParticipants(tournament_id int) ([]*domain.Participant, error)
-	CreateMatchSchedules(tournament_id int, approvedParticipants []*domain.Participant) error
+	CreateMatchSchedules(tournament_id int, group_count int, approvedParticipants []*domain.Participant) error
 	GenerateGroups(tournament_id int, groupCount int, approvedParticipants []*domain.Participant) error
 	GetAllMatches(tournament_id int) ([]*domain.Match, error)
 }
