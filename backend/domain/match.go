@@ -14,3 +14,12 @@ type Match struct {
 	CreatedAt      *string  `json:"created_at"`
 	WinnerID       *int    `json:"winner_id,omitempty"`  // Nullable, will be set when the match is concluded
 }
+
+type UpadateMatchScoreInput struct {
+	TournamentID int `json:"tournament_id" binding:"required"`
+	ParticipantAID int `json:"participant_a_id" binding:"required"`
+	ParticipantBID int `json:"participant_b_id" binding:"required"`
+	Round   string `json:"round" binding:"required"`
+	ScoreA  int `json:"score_a" binding:"required"`
+	ScoreB  int `json:"score_b" binding:"required"`
+}

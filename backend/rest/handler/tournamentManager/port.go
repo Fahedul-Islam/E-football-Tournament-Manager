@@ -17,6 +17,8 @@ type Service interface {
 	CreateMatchSchedules(tournament_id int, group_count int, approvedParticipants []*domain.Participant) error
 	GenerateGroups(tournament_id int, groupCount int, approvedParticipants []*domain.Participant) error
 	GetAllMatches(tournament_id int) ([]*domain.Match, error)
+	UpdateScore(tournament_owner_id int,req *domain.UpadateMatchScoreInput) (*domain.UpadateMatchScoreInput,error)
+	CheckAndAdvanceRound(tournament_id int, round string) (bool, error)	
 }
 
 type TournamentManagerHandler struct {
