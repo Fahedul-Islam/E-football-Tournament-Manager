@@ -19,6 +19,11 @@ type Service interface {
 	GetAllMatches(tournament_id int) ([]*domain.Match, error)
 	UpdateScore(tournament_owner_id int,req *domain.UpadateMatchScoreInput) (*domain.UpadateMatchScoreInput,error)
 	CheckAndAdvanceRound(tournament_id int, round string) (bool, error)	
+	GetGroupCount(tournament_id int) (int, error)
+	GenerateRoundOf16(tournament_id int) (bool, error)
+	GenerateQuarterFinals(tournament_id int) (bool, error)
+	GenerateSemiFinals(tournament_id int) (bool, error)
+	GenerateFinal(tournament_id int) (bool, error)
 }
 
 type TournamentManagerHandler struct {
