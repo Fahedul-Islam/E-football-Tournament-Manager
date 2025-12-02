@@ -13,11 +13,6 @@ func (h *TournamentManagerHandler) GetGroupStageLeaderboard(w http.ResponseWrite
 		http.Error(w, "Invalid tournament ID", http.StatusBadRequest)
 		return
 	}
-	if err != nil {
-		http.Error(w, "Invalid group ID", http.StatusBadRequest)
-		return
-	}
-
 	leaderboard, err := h.tournamentService.GetLeaderboard(tournament_id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

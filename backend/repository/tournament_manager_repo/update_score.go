@@ -30,7 +30,7 @@ func (r *tournamentManagerRepo) UpdateScore(tournament_owner_id int, req *domain
 	}
 
 	// 3️⃣ Get group_id of this match
-	var groupID int
+	var groupID sql.NullInt64
 	err = r.db.QueryRow(`
 		SELECT group_id FROM matches
 		WHERE tournament_id = $1 AND participant_a_id = $2 AND participant_b_id = $3 AND round = $4

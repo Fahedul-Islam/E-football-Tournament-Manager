@@ -39,16 +39,7 @@ func (h *TournamentManagerHandler) UpdateScore(w http.ResponseWriter, r *http.Re
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	var group_count int
-
-	if req.Round == "Group Stage" {
-		group_count, err = h.tournamentService.GetGroupCount(req.TournamentID)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-	fmt.Println(thisRoundDone, req.Round, tournament_type, group_count)
+	
 	if (thisRoundDone && tournament_type == "group+knockout") || (thisRoundDone && tournament_type == "knockout") {
 		switch req.Round {
 		case "Group Stage":
@@ -62,10 +53,10 @@ func (h *TournamentManagerHandler) UpdateScore(w http.ResponseWriter, r *http.Re
 			_, err = h.tournamentService.GenerateQuarterFinals(req.TournamentID)
 		case "Quarter Finals":
 			_, err = h.tournamentService.GenerateSemiFinals(req.TournamentID)
-		case "Semi Finals":
+		case "Semifinals":
 			_, err = h.tournamentService.GenerateFinal(req.TournamentID)
 		case "Final":
-			// Tournament is over, no further action needed
+			fmt.Println("Tournament has concluded.")
 		default:
 			http.Error(w, "Unknown round", http.StatusBadRequest)
 			return
