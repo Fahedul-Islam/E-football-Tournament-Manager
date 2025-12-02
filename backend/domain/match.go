@@ -1,25 +1,27 @@
 package domain
 
+import "database/sql"
+
 type Match struct {
-	ID             int    `json:"id"`
-	TournamentID   int    `json:"tournament_id"`
-	GroupID        int    `json:"group_id"`
-	Round          string `json:"round"` // e.g., "Group Stage", "Quarterfinal", etc.
-	ParticipantAID int    `json:"participant_a_id"`
-	ParticipantBID int    `json:"participant_b_id"`
-	ScoreA         *int   `json:"score_a,omitempty"`    // Nullable, will be set when the match is concluded
-	ScoreB         *int   `json:"score_b,omitempty"`    // Nullable, will be set when the match is concluded
-	MatchDate      *string `json:"match_date,omitempty"` // Nullable, can be set when scheduling the match
-	Status         string  `json:"status"`               // e.g., "Scheduled", "Completed", "Pending"
-	CreatedAt      *string  `json:"created_at"`
-	WinnerID       *int    `json:"winner_id,omitempty"`  // Nullable, will be set when the match is concluded
+	ID             int           `json:"id"`
+	TournamentID   int           `json:"tournament_id"`
+	GroupID        sql.NullInt64 `json:"group_id"`
+	Round          string        `json:"round"` // e.g., "Group Stage", "Quarterfinal", etc.
+	ParticipantAID int           `json:"participant_a_id"`
+	ParticipantBID int           `json:"participant_b_id"`
+	ScoreA         *int          `json:"score_a,omitempty"`    // Nullable, will be set when the match is concluded
+	ScoreB         *int          `json:"score_b,omitempty"`    // Nullable, will be set when the match is concluded
+	MatchDate      *string       `json:"match_date,omitempty"` // Nullable, can be set when scheduling the match
+	Status         string        `json:"status"`               // e.g., "Scheduled", "Completed", "Pending"
+	CreatedAt      *string       `json:"created_at"`
+	WinnerID       *int          `json:"winner_id,omitempty"` // Nullable, will be set when the match is concluded
 }
 
 type UpadateMatchScoreInput struct {
-	TournamentID int `json:"tournament_id" binding:"required"`
-	ParticipantAID int `json:"participant_a_id" binding:"required"`
-	ParticipantBID int `json:"participant_b_id" binding:"required"`
-	Round   string `json:"round" binding:"required"`
-	ScoreA  int `json:"score_a" binding:"required"`
-	ScoreB  int `json:"score_b" binding:"required"`
+	TournamentID   int    `json:"tournament_id" binding:"required"`
+	ParticipantAID int    `json:"participant_a_id" binding:"required"`
+	ParticipantBID int    `json:"participant_b_id" binding:"required"`
+	Round          string `json:"round" binding:"required"`
+	ScoreA         int    `json:"score_a" binding:"required"`
+	ScoreB         int    `json:"score_b" binding:"required"`
 }

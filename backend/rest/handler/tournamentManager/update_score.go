@@ -2,6 +2,7 @@ package tournamentmanager
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"tournament-manager/domain"
@@ -33,8 +34,11 @@ func (h *TournamentManagerHandler) UpdateScore(w http.ResponseWriter, r *http.Re
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	tournament_type := r.URL.Query().Get("type")
+	tournament_type, err := h.tournamentService.GetTournamentType(req.TournamentID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	var group_count int
 
 	if req.Round == "Group Stage" {
@@ -44,23 +48,11 @@ func (h *TournamentManagerHandler) UpdateScore(w http.ResponseWriter, r *http.Re
 			return
 		}
 	}
-
-	if (thisRoundDone && tournament_type == "group-knockout") || (thisRoundDone && tournament_type == "knockout") {
+	fmt.Println(thisRoundDone, req.Round, tournament_type, group_count)
+	if (thisRoundDone && tournament_type == "group+knockout") || (thisRoundDone && tournament_type == "knockout") {
 		switch req.Round {
 		case "Group Stage":
-			switch group_count {
-			case 8:
-				_, err = h.tournamentService.GenerateRoundOf16(req.TournamentID)
-			case 4:
-				_, err = h.tournamentService.GenerateQuarterFinals(req.TournamentID)
-			case 2:
-				_, err = h.tournamentService.GenerateSemiFinals(req.TournamentID)
-			case 1:
-				_, err = h.tournamentService.GenerateFinal(req.TournamentID)
-			default:
-				http.Error(w, "Invalid group count", http.StatusBadRequest)
-				return
-			}
+			_, err = h.tournamentService.GenerateKnockoutStage(req.TournamentID)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return

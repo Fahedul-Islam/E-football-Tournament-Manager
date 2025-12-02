@@ -36,7 +36,12 @@ func (r *tournamentManagerRepo) UpdateScore(tournament_owner_id int, req *domain
 		WHERE tournament_id = $1 AND participant_a_id = $2 AND participant_b_id = $3 AND round = $4
 	`, req.TournamentID, req.ParticipantAID, req.ParticipantBID, req.Round).Scan(&groupID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch group ID: %w", err)
+		err = r.db.QueryRow(`
+		SELECT group_id FROM matches
+		WHERE tournament_id = $1 AND participant_a_id = $2 AND participant_b_id = $3 AND round = $4`, req.TournamentID,req.ParticipantBID,req.ParticipantAID, req.Round).Scan(&groupID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch group ID: %w", err)
+		}
 	}
 
 	// 4️⃣ Begin transaction for player_stats update

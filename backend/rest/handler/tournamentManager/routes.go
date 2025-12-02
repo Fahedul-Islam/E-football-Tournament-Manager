@@ -18,5 +18,6 @@ func (h *TournamentManagerHandler) RegisterRoutes(mux *http.ServeMux, manager *m
 	mux.Handle("GET /tournaments/create_match_schedules", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.CreateMatchSchedules)))
 	mux.Handle("GET /tournaments/matches", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.GetAllMatches)))
 	mux.Handle("PATCH /tournaments/matche-score/update",manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.UpdateScore)))
+	mux.Handle("GET /tournaments/leaderboard",manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.GetGroupStageLeaderboard)))
 	
 }

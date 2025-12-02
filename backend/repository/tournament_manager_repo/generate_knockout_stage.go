@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func (r *tournamentManagerRepo) GenerateRoundOf16(tournament_id int) (bool, error) {
+func (r *tournamentManagerRepo) GenerateKnockoutStage(tournament_id int) (bool, error) {
 	// 1️⃣ Fetch all groups for this tournament
 	groupRows, err := r.db.Query(`SELECT id FROM groups WHERE tournament_id = $1 ORDER BY id`, tournament_id)
 	if err != nil {
@@ -50,9 +50,17 @@ func (r *tournamentManagerRepo) GenerateRoundOf16(tournament_id int) (bool, erro
 		}
 		rows.Close()
 	}
-
-	if len(qualifiedPlayers) != 16 {
-		return false, fmt.Errorf("expected 16 qualified participants, got %d", len(qualifiedPlayers))
+	var next_round string
+	if len(qualifiedPlayers) == 16 {
+		next_round = "Round of 16"
+	}else if len(qualifiedPlayers) == 8 {
+		next_round = "Quarterfinals"
+	} else if len(qualifiedPlayers) == 4 {
+		next_round = "Semifinals"
+	} else if len(qualifiedPlayers) == 2 {
+		next_round = "Final"
+	} else {
+		return false, fmt.Errorf("expected 16, 8, 4 or 2 qualified participants, got %d", len(qualifiedPlayers))
 	}
 
 	// 3️⃣ Randomize the qualified participants for fairness
@@ -82,14 +90,14 @@ func (r *tournamentManagerRepo) GenerateRoundOf16(tournament_id int) (bool, erro
 	for i := 0; i < len(qualifiedPlayers); i += 2 {
 		a := qualifiedPlayers[i]
 		b := qualifiedPlayers[i+1]
-		if _, err := stmt.Exec(tournament_id, -1, "Round of 16", a, b); err != nil {
-			return false, fmt.Errorf("failed to insert round of 16 match: %w", err)
+		if _, err := stmt.Exec(tournament_id, nil, next_round, a, b); err != nil {
+			return false, fmt.Errorf("failed to insert knockout-stage match: %w", err)
 		}
 	}
 
 	// 7️⃣ Commit
 	if err := tx.Commit(); err != nil {
-		return false, fmt.Errorf("failed to commit round of 16 matches: %w", err)
+		return false, fmt.Errorf("failed to commit knockout-stage matches: %w", err)
 	}
 
 	return true, nil
