@@ -26,6 +26,8 @@ type Service interface {
 	GenerateFinal(tournament_id int) (bool, error)
 	GetLeaderboard(tournament_id int) (map[int][]domain.PlayerStat, error)
 	GetTournamentType(tournament_id int) (string, error)
+	LeagueStyleSchedule(tournament_id int, approvedParticipants []*domain.Participant) error
+	VerifyTournamentOwner(tournament_id int, user_id int) (bool, error)
 }
 
 type TournamentManagerHandler struct {

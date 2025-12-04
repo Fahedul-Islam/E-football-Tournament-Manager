@@ -161,7 +161,7 @@ func (r *tournamentManagerRepo) GenerateQuarterFinals(tournament_id int) (bool, 
 
 	// 5️⃣ Create 4 Quarterfinal matches
 	for i := 0; i < len(winners); i += 2 {
-		_, err := stmt.Exec(tournament_id, -1, "Quarterfinals", winners[i], winners[i+1])
+		_, err := stmt.Exec(tournament_id, nil, "Quarterfinals", winners[i], winners[i+1])
 		if err != nil {
 			return false, fmt.Errorf("failed to insert quarterfinal match: %w", err)
 		}
