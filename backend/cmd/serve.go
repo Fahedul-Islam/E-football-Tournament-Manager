@@ -6,13 +6,18 @@ import (
 	"net/http"
 	"tournament-manager/config"
 	"tournament-manager/infra/db"
-	participantrepo "tournament-manager/repository/participant_repo"
-	tournamentmanagerrepo "tournament-manager/repository/tournament_manager_repo"
-	userrepo "tournament-manager/repository/user-repo"
-	"tournament-manager/rest/handler/participant"
-	tournamentmanager "tournament-manager/rest/handler/tournamentManager"
-	"tournament-manager/rest/handler/user"
-	"tournament-manager/rest/middleware"
+	"tournament-manager/internal/delivery/http/handler/participant"
+	tournamentmanager "tournament-manager/internal/delivery/http/handler/tournamentManager"
+	"tournament-manager/internal/delivery/http/handler/user"
+	"tournament-manager/internal/delivery/http/middleware"
+	participantrepo "tournament-manager/internal/repository/participant_repo"
+	tournamentmanagerrepo "tournament-manager/internal/repository/tournament_manager_repo"
+	userrepo "tournament-manager/internal/repository/user-repo"
+
+	// Service layer imports
+	participantservice "tournament-manager/internal/service/participant"
+	tournamentservice "tournament-manager/internal/service/tournament"
+	userservice "tournament-manager/internal/service/user"
 )
 
 func Serve() {
@@ -38,16 +43,24 @@ func Serve() {
 	middlewareManager := middleware.NewMiddlewareManager()
 	middlewareManager.Use(middleware.Logger, middleware.CorsWithPreflight)
 
+	// Initialize repositories
 	userRepo := userrepo.NewUserRepo(dB)
-	userHandler := user.NewUserHandler(cfg, userRepo)
+	tournamentRepo := tournamentmanagerrepo.NewTournamentManagerRepo(dB)
+	participantRepo := participantrepo.NewParticipantRepo(dB)
+
+	// Initialize services
+	userSvc := userservice.NewUserService(userRepo)
+	tournamentSvc := tournamentservice.NewTournamentService(tournamentRepo)
+	participantSvc := participantservice.NewParticipantService(participantRepo)
+
+	// Initialize handlers with services
+	userHandler := user.NewUserHandler(cfg, userSvc)
 	userHandler.RegisterRoutes(mux, middlewareManager)
 
-	tournamentRepo := tournamentmanagerrepo.NewTournamentManagerRepo(dB)
-	tournamentHandler := tournamentmanager.NewTournamentManagerHandler(tournamentRepo)
+	tournamentHandler := tournamentmanager.NewTournamentManagerHandler(tournamentSvc)
 	tournamentHandler.RegisterRoutes(mux, middlewareManager)
 
-	participantrepo := participantrepo.NewParticipantRepo(dB)
-	participantHandler := participant.NewParticipantHandler(participantrepo)
+	participantHandler := participant.NewParticipantHandler(participantSvc)
 	participantHandler.RegisterRoutes(mux, middlewareManager)
 
 	wrappedMux := middlewareManager.WrappedMux(mux)
