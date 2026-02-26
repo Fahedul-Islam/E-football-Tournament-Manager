@@ -1,6 +1,7 @@
 package participantrepo
 
 import (
+	"context"
 	"database/sql"
 	"time"
 	"tournament-manager/internal/domain"
@@ -15,15 +16,14 @@ func NewParticipantRepo(db *sql.DB) repository.ParticipantRepository {
 	return &participantRepo{db: db}
 }
 
-
-func (r *participantRepo) RequestToJoinTournament(req domain.ParticipantRequest) error {
+func (r *participantRepo) RequestToJoinTournament(ctx context.Context, req domain.ParticipantRequest) error {
 	var total_current_participant int
-	err := r.db.QueryRow(`SELECT COUNT(*) FROM participants WHERE tournament_id=$1 AND status='approved'`, req.TournamentID).Scan(&total_current_participant)
+	err := r.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM participants WHERE tournament_id=$1 AND status='approved'`, req.TournamentID).Scan(&total_current_participant)
 	if err != nil {
 		return err
 	}
 	var max_participants int
-	err = r.db.QueryRow(`SELECT max_players FROM tournaments WHERE id=$1`, req.TournamentID).Scan(&max_participants)
+	err = r.db.QueryRowContext(ctx, `SELECT max_players FROM tournaments WHERE id=$1`, req.TournamentID).Scan(&max_participants)
 	if err != nil {
 		return err
 	}
@@ -37,20 +37,21 @@ func (r *participantRepo) RequestToJoinTournament(req domain.ParticipantRequest)
 		TeamName:     req.TeamName,
 		CreatedAt:    time.Now().Format(time.RFC3339),
 	}
-	return r.db.QueryRow(query, participant.UserID, participant.TournamentID, participant.TeamName, participant.CreatedAt).Scan(&participant.ID)
+	return r.db.QueryRowContext(ctx, query, participant.UserID, participant.TournamentID, participant.TeamName, participant.CreatedAt).Scan(&participant.ID)
 }
 
-func (r *participantRepo) IsApprovedParticipant(tournament_id int, user_id int) (bool, error) {
+func (r *participantRepo) IsApprovedParticipant(ctx context.Context, tournament_id int, user_id int) (bool, error) {
 	var exists bool
-	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM participants WHERE tournament_id = $1 AND user_id = $2 AND status = 'approved')", tournament_id, user_id).Scan(&exists)
+	err := r.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM participants WHERE tournament_id = $1 AND user_id = $2 AND status = 'approved')", tournament_id, user_id).Scan(&exists)
 	if err != nil {
 		return false, err
 	}
 	return exists, nil
 }
 
-func (r *participantRepo) GetGroupDistribution(tournament_id int) ([]*domain.Group, error) {
-	rows, err := r.db.Query(`
+func (r *participantRepo) GetGroupDistribution(ctx context.Context, tournament_id int) ([]*domain.Group, error) {
+	rows, err := r.db.QueryContext(ctx, `
+
 		SELECT g.id, g.name, p.id, p.user_id, p.team_name, p.status, p.created_at
 		FROM groups g
 		LEFT JOIN group_teams gt ON g.id = gt.group_id
@@ -106,8 +107,8 @@ func (r *participantRepo) GetGroupDistribution(tournament_id int) ([]*domain.Gro
 	return groups, nil
 }
 
-func (r *participantRepo) SeeMatchSchedule(tournament_id int) ([]*domain.Match, error) {
-	rows, err := r.db.Query("SELECT * FROM matches WHERE tournament_id=$1", tournament_id)
+func (r *participantRepo) SeeMatchSchedule(ctx context.Context, tournament_id int) ([]*domain.Match, error) {
+	rows, err := r.db.QueryContext(ctx, "SELECT * FROM matches WHERE tournament_id=$1", tournament_id)
 	if err != nil {
 		return nil, err
 	}

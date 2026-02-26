@@ -17,7 +17,7 @@ func (h *TournamentManagerHandler) UpdateScore(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var req domain.UpadateMatchScoreInput
+	var req domain.UpdateMatchScoreInput
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return

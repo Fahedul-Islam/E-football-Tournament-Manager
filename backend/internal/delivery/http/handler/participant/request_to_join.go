@@ -13,7 +13,7 @@ func (h *ParticipantHandler) RequestToJoin(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-	if err := h.service.RequestToJoinTournament(req); err != nil {
+	if err := h.service.RequestToJoinTournament(r.Context(),req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

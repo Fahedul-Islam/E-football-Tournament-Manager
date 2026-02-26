@@ -20,7 +20,7 @@ func (h *ParticipantHandler) SeeMatchSchedule(w http.ResponseWriter, r *http.Req
 		http.Error(w, "Invalid tournament ID", http.StatusBadRequest)
 		return
 	}
-	isApproved, err := h.service.IsApprovedParticipant(tournament_id, user_id)
+	isApproved, err := h.service.IsApprovedParticipant(r.Context(), tournament_id, user_id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -30,7 +30,7 @@ func (h *ParticipantHandler) SeeMatchSchedule(w http.ResponseWriter, r *http.Req
 		return
 	}
 	
-	match_schedule, err := h.service.SeeMatchSchedule(tournament_id)
+	match_schedule, err := h.service.SeeMatchSchedule(r.Context(), tournament_id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

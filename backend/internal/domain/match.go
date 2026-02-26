@@ -17,7 +17,7 @@ type Match struct {
 	WinnerID       *int          `json:"winner_id,omitempty"` // Nullable, will be set when the match is concluded
 }
 
-type UpadateMatchScoreInput struct {
+type UpdateMatchScoreInput struct {
 	TournamentID   int    `json:"tournament_id" binding:"required"`
 	ParticipantAID int    `json:"participant_a_id" binding:"required"`
 	ParticipantBID int    `json:"participant_b_id" binding:"required"`

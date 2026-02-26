@@ -20,7 +20,7 @@ type Service interface {
 	CreateMatchSchedules(ctx context.Context, tournament_id int, group_count int, approvedParticipants []*domain.Participant) error
 	GenerateGroups(ctx context.Context, tournament_id int, groupCount int, approvedParticipants []*domain.Participant) error
 	GetAllMatches(ctx context.Context, tournament_id int) ([]*domain.Match, error)
-	UpdateScore(ctx context.Context,tournament_owner_id int,req *domain.UpadateMatchScoreInput) (*domain.UpadateMatchScoreInput,error)
+	UpdateScore(ctx context.Context,tournament_owner_id int,req *domain.UpdateMatchScoreInput) (*domain.UpdateMatchScoreInput,error)
 	CheckAndAdvanceRound(ctx context.Context,tournament_id int, round string) (bool, error)	
 	GetGroupCount(ctx context.Context, tournament_id int) (int, error)
 	GenerateKnockoutStage(ctx context.Context, tournament_id int) (bool, error)

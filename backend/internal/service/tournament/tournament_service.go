@@ -98,7 +98,7 @@ func (s *service) GetAllMatches(ctx context.Context, tournamentID int) ([]*domai
 }
 
 // UpdateScore updates the score for a match
-func (s *service) UpdateScore(ctx context.Context, tournamentOwnerID int, req *domain.UpadateMatchScoreInput) (*domain.UpadateMatchScoreInput, error) {
+func (s *service) UpdateScore(ctx context.Context, tournamentOwnerID int, req *domain.UpdateMatchScoreInput) (*domain.UpdateMatchScoreInput, error) {
 	return s.tournamentRepo.UpdateScore(ctx, tournamentOwnerID, req)
 }
 

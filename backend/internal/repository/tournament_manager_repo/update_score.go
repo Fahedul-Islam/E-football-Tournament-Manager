@@ -7,7 +7,7 @@ import (
 	"tournament-manager/internal/domain"
 )
 
-func (r *tournamentManagerRepo) UpdateScore(ctx context.Context, tournament_owner_id int, req *domain.UpadateMatchScoreInput) (*domain.UpadateMatchScoreInput, error) {
+func (r *tournamentManagerRepo) UpdateScore(ctx context.Context, tournament_owner_id int, req *domain.UpdateMatchScoreInput) (*domain.UpdateMatchScoreInput, error) {
 	// 1️⃣ Validate tournament ownership
 	var validOwner bool
 	err := r.db.QueryRowContext(ctx, `

@@ -1,12 +1,15 @@
 package participant
 
-import "tournament-manager/internal/domain"
+import (
+	"context"
+	"tournament-manager/internal/domain"
+)
 
 type Service interface {
-	RequestToJoinTournament(domain.ParticipantRequest) error
-	IsApprovedParticipant(tournament_id int, user_id int) (bool, error)
-	GetGroupDistribution(tournament_id int) ([]*domain.Group, error)
-	SeeMatchSchedule(tournament_id int) ([]*domain.Match, error)
+	RequestToJoinTournament(context.Context,domain.ParticipantRequest) error
+	IsApprovedParticipant(ctx context.Context,tournament_id int, user_id int) (bool, error)
+	GetGroupDistribution(ctx context.Context,tournament_id int) ([]*domain.Group, error)
+	SeeMatchSchedule(ctx context.Context,tournament_id int) ([]*domain.Match, error)
 }
 
 type ParticipantHandler struct {

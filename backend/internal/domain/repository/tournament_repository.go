@@ -21,7 +21,7 @@ type TournamentRepository interface {
 	CreateMatchSchedules(ctx context.Context, tournamentID int, groupCount int, approvedParticipants []*domain.Participant) error
 	GenerateGroups(ctx context.Context, tournamentID int, groupCount int, approvedParticipants []*domain.Participant) error
 	GetAllMatches(ctx context.Context, tournamentID int) ([]*domain.Match, error)
-	UpdateScore(ctx context.Context, tournamentOwnerID int, req *domain.UpadateMatchScoreInput) (*domain.UpadateMatchScoreInput, error)
+	UpdateScore(ctx context.Context, tournamentOwnerID int, req *domain.UpdateMatchScoreInput) (*domain.UpdateMatchScoreInput, error)
 	CheckAndAdvanceRound(ctx context.Context, tournamentID int, round string) (bool, error)
 	GetGroupCount(ctx context.Context, tournamentID int) (int, error)
 	GenerateKnockoutStage(ctx context.Context, tournamentID int) (bool, error)
