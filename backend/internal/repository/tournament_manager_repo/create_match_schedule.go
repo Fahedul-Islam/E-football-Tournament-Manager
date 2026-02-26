@@ -1,18 +1,19 @@
 package tournamentmanagerrepo
 
 import (
+	"context"
 	"fmt"
 	"tournament-manager/internal/domain"
 )
 
-func (r *tournamentManagerRepo) CreateMatchSchedules(tournamentID int, groupCount int, approvedParticipants []*domain.Participant) error {
+func (r *tournamentManagerRepo) CreateMatchSchedules(ctx context.Context, tournamentID int, groupCount int, approvedParticipants []*domain.Participant) error {
 	// 1️⃣ Generate groups first
-	if err := r.GenerateGroups(tournamentID, groupCount, approvedParticipants); err != nil {
+	if err := r.GenerateGroups(ctx, tournamentID, groupCount, approvedParticipants); err != nil {
 		return fmt.Errorf("failed to generate groups: %w", err)
 	}
 
 	// 2️⃣ Fetch all group IDs for this tournament
-	groupRows, err := r.db.Query(`SELECT id FROM groups WHERE tournament_id = $1`, tournamentID)
+	groupRows, err := r.db.QueryContext(ctx, `SELECT id FROM groups WHERE tournament_id = $1`, tournamentID)
 	if err != nil {
 		return fmt.Errorf("failed to fetch groups: %w", err)
 	}
@@ -33,7 +34,7 @@ func (r *tournamentManagerRepo) CreateMatchSchedules(tournamentID int, groupCoun
 	// 3️⃣ Get participants per group
 	participantsPerGroup := make(map[int][]int)
 	for _, groupID := range groupIDs {
-		rows, err := r.db.Query(`SELECT participant_id FROM group_teams WHERE group_id = $1`, groupID)
+		rows, err := r.db.QueryContext(ctx, `SELECT participant_id FROM group_teams WHERE group_id = $1`, groupID)
 		if err != nil {
 			return fmt.Errorf("failed to fetch participants for group %d: %w", groupID, err)
 		}
@@ -59,7 +60,7 @@ func (r *tournamentManagerRepo) CreateMatchSchedules(tournamentID int, groupCoun
 	defer func() { _ = tx.Rollback() }()
 
 	// 5️⃣ Prepare insert statements
-	matchStmt, err := tx.Prepare(`
+	matchStmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO matches (tournament_id, group_id, round, participant_a_id, participant_b_id)
 		VALUES ($1, $2, $3, $4, $5)
 	`)
@@ -68,7 +69,7 @@ func (r *tournamentManagerRepo) CreateMatchSchedules(tournamentID int, groupCoun
 	}
 	defer matchStmt.Close()
 
-	playerStatStmt, err := tx.Prepare(`
+	playerStatStmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO player_stats (group_id, participant_id)
 		VALUES ($1, $2)
 		ON CONFLICT (group_id, participant_id) DO NOTHING
@@ -82,7 +83,7 @@ func (r *tournamentManagerRepo) CreateMatchSchedules(tournamentID int, groupCoun
 	for groupID, participants := range participantsPerGroup {
 		// Insert player stats for each participant
 		for _, pid := range participants {
-			if _, err := playerStatStmt.Exec(groupID, pid); err != nil {
+			if _, err := playerStatStmt.ExecContext(ctx, groupID, pid); err != nil {
 				return fmt.Errorf("failed to insert player stats for participant %d in group %d: %w", pid, groupID, err)
 			}
 		}
@@ -90,7 +91,7 @@ func (r *tournamentManagerRepo) CreateMatchSchedules(tournamentID int, groupCoun
 		// Create round-robin matches
 		for i := 0; i < len(participants); i++ {
 			for j := i + 1; j < len(participants); j++ {
-				if _, err := matchStmt.Exec(tournamentID, groupID, "Group Stage", participants[i], participants[j]); err != nil {
+				if _, err := matchStmt.ExecContext(ctx, tournamentID, groupID, "Group Stage", participants[i], participants[j]); err != nil {
 					return fmt.Errorf("failed to insert match for group %d: %w", groupID, err)
 				}
 			}

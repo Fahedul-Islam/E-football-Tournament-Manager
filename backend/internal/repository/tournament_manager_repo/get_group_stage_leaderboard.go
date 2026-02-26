@@ -1,11 +1,14 @@
 package tournamentmanagerrepo
 
-import "tournament-manager/internal/domain"
+import (
+	"context"
+	"tournament-manager/internal/domain"
+)
 
-func (r *tournamentManagerRepo) GetLeaderboard(tournament_id int) (map[int][]domain.PlayerStat, error) {
+func (r *tournamentManagerRepo) GetLeaderboard(ctx context.Context, tournament_id int) (map[int][]domain.PlayerStat, error) {
 	// get group id from group table by tournament id
 	query := `SELECT id FROM groups WHERE tournament_id = $1`
-	rows, err := r.db.Query(query, tournament_id)
+	rows, err := r.db.QueryContext(ctx, query, tournament_id)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +33,7 @@ func (r *tournamentManagerRepo) GetLeaderboard(tournament_id int) (map[int][]dom
 			WHERE  group_id = $1
 			ORDER BY points DESC, goal_difference DESC, goals_scored DESC
 		`
-		rows, err := r.db.Query(query, groupID)
+		rows, err := r.db.QueryContext(ctx, query, groupID)
 		if err != nil {
 			return nil, err
 		}

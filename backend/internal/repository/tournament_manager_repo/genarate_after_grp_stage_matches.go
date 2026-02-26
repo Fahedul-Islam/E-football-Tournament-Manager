@@ -1,15 +1,16 @@
 package tournamentmanagerrepo
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"math/rand"
 	"time"
 )
 
-func (r *tournamentManagerRepo) GenerateKnockoutStage(tournament_id int) (bool, error) {
+func (r *tournamentManagerRepo) GenerateKnockoutStage(ctx context.Context, tournament_id int) (bool, error) {
 	// 1️⃣ Fetch all groups for this tournament
-	groupRows, err := r.db.Query(`SELECT id FROM groups WHERE tournament_id = $1 ORDER BY id`, tournament_id)
+	groupRows, err := r.db.QueryContext(ctx, `SELECT id FROM groups WHERE tournament_id = $1 ORDER BY id`, tournament_id)
 	if err != nil {
 		return false, fmt.Errorf("failed to fetch groups: %w", err)
 	}
@@ -30,7 +31,7 @@ func (r *tournamentManagerRepo) GenerateKnockoutStage(tournament_id int) (bool, 
 	// 2️⃣ Get top 2 participants from each group (sorted by points, GD, goals scored)
 	var qualifiedPlayers []int
 	for _, gid := range groupIDs {
-		rows, err := r.db.Query(`
+		rows, err := r.db.QueryContext(ctx, `
 			SELECT participant_id 
 			FROM player_stats 
 			WHERE group_id = $1 
@@ -104,9 +105,9 @@ func (r *tournamentManagerRepo) GenerateKnockoutStage(tournament_id int) (bool, 
 	return true, nil
 }
 
-func (r *tournamentManagerRepo) GenerateQuarterFinals(tournament_id int) (bool, error) {
+func (r *tournamentManagerRepo) GenerateQuarterFinals(ctx context.Context, tournament_id int) (bool, error) {
 	// 1️⃣ Fetch winners from Round of 16
-	rows, err := r.db.Query(`
+	rows, err := r.db.QueryContext(ctx, `
 		SELECT 
 			CASE 
 				WHEN participant_a_score > participant_b_score THEN participant_a_id
@@ -175,8 +176,8 @@ func (r *tournamentManagerRepo) GenerateQuarterFinals(tournament_id int) (bool, 
 	return true, nil
 }
 
-func (r *tournamentManagerRepo) GenerateSemiFinals(tournament_id int) (bool, error) {
-	rows, err := r.db.Query(`
+func (r *tournamentManagerRepo) GenerateSemiFinals(ctx context.Context, tournament_id int) (bool, error) {
+	rows, err := r.db.QueryContext(ctx, `
 		SELECT 
 			CASE 
 				WHEN participant_a_score > participant_b_score THEN participant_a_id
@@ -240,8 +241,8 @@ func (r *tournamentManagerRepo) GenerateSemiFinals(tournament_id int) (bool, err
 	return true, nil
 }
 
-func (r *tournamentManagerRepo) GenerateFinal(tournament_id int) (bool, error) {
-	rows, err := r.db.Query(`
+func (r *tournamentManagerRepo) GenerateFinal(ctx context.Context, tournament_id int) (bool, error) {
+	rows, err := r.db.QueryContext(ctx, `
 		SELECT 
 			CASE 
 				WHEN participant_a_score > participant_b_score THEN participant_a_id
@@ -271,7 +272,7 @@ func (r *tournamentManagerRepo) GenerateFinal(tournament_id int) (bool, error) {
 		return false, fmt.Errorf("expected 2 winners from Semifinals, got %d", len(winners))
 	}
 
-	_, err = r.db.Exec(`
+	_, err = r.db.ExecContext(ctx, `
 		INSERT INTO matches (tournament_id, group_id, round, participant_a_id, participant_b_id)
 		VALUES ($1, $2, $3, $4, $5)
 	`, tournament_id, nil, "Final", winners[0], winners[1])

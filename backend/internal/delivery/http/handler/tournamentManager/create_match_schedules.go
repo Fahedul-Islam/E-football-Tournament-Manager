@@ -21,7 +21,7 @@ func (h *TournamentManagerHandler) CreateMatchSchedules(w http.ResponseWriter, r
 		return
 	}
 	// verify permission
-	hasPermission, err := h.tournamentService.VerifyTournamentOwner(tournament_id, tournament_owner_id)
+	hasPermission, err := h.tournamentService.VerifyTournamentOwner(r.Context(), tournament_id, tournament_owner_id)
 	if err != nil {
 		http.Error(w, "Failed to verify tournament owner", http.StatusInternalServerError)
 		return
@@ -32,7 +32,7 @@ func (h *TournamentManagerHandler) CreateMatchSchedules(w http.ResponseWriter, r
 	}
 
 	// check tournament type
-	tournment_type, err := h.tournamentService.GetTournamentType(tournament_id)
+	tournment_type, err := h.tournamentService.GetTournamentType(r.Context(),tournament_id)
 	if err != nil {
 		http.Error(w, "Failed to get tournament type", http.StatusInternalServerError)
 		return
@@ -56,7 +56,7 @@ func (h *TournamentManagerHandler) CreateMatchSchedules(w http.ResponseWriter, r
 	}
 
 	var approvedParticipants []*domain.Participant
-	approvedParticipants, err = h.tournamentService.GetApprovedParticipants(tournament_id)
+	approvedParticipants, err = h.tournamentService.GetApprovedParticipants(r.Context(), tournament_id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -65,7 +65,7 @@ func (h *TournamentManagerHandler) CreateMatchSchedules(w http.ResponseWriter, r
 		http.Error(w, "Not enough approved participants to create match schedules", http.StatusBadRequest)
 		return
 	}
-	err = h.tournamentService.CreateMatchSchedules(tournament_id, groupCount, approvedParticipants)
+	err = h.tournamentService.CreateMatchSchedules(r.Context(), tournament_id, groupCount, approvedParticipants)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -83,7 +83,7 @@ func (h *TournamentManagerHandler) LeagueStyleSchedule(w http.ResponseWriter, r 
 	}
 	
 	var approvedParticipants []*domain.Participant
-	approvedParticipants, err = h.tournamentService.GetApprovedParticipants(tournament_id)
+	approvedParticipants, err = h.tournamentService.GetApprovedParticipants(r.Context(),tournament_id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -92,7 +92,7 @@ func (h *TournamentManagerHandler) LeagueStyleSchedule(w http.ResponseWriter, r 
 		http.Error(w, "Not enough approved participants to create match schedules", http.StatusBadRequest)
 		return
 	}
-	err = h.tournamentService.LeagueStyleSchedule(tournament_id, approvedParticipants)
+	err = h.tournamentService.LeagueStyleSchedule(r.Context(), tournament_id, approvedParticipants)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

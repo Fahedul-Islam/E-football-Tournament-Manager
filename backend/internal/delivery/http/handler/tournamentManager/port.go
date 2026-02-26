@@ -1,33 +1,36 @@
 package tournamentmanager
 
-import "tournament-manager/internal/domain"
+import (
+	"context"
+	"tournament-manager/internal/domain"
+)
 
 type Service interface {
-	CreateTournament(created_by int, request domain.TournamentCreateRequest) error
-	GetTournamentByID(id int) (*domain.Tournament, error)
-	GetAllTournaments(tournament_owner_id int) ([]*domain.Tournament, error)
-	UpdateTournament(tournament_owner_id int, tournament_id int, tournament domain.TournamentCreateRequest) error
-	DeleteTournament(tournament_owner_id int, tournament_id int) error
-	ApproveParticipant(tournament_owner_id int, req domain.ParticipantRequest) error
-	RejectParticipant(tournament_owner_id int, req domain.ParticipantRequest) error
-	AddParticipant(tournament_owner_id int, participant domain.ParticipantRequest) error
-	RemoveParticipant(tournament_owner_id int, req domain.ParticipantRequest) error
-	GetAllParticipant(tournament_id int) ([]*domain.Participant, error)
-	GetApprovedParticipants(tournament_id int) ([]*domain.Participant, error)
-	CreateMatchSchedules(tournament_id int, group_count int, approvedParticipants []*domain.Participant) error
-	GenerateGroups(tournament_id int, groupCount int, approvedParticipants []*domain.Participant) error
-	GetAllMatches(tournament_id int) ([]*domain.Match, error)
-	UpdateScore(tournament_owner_id int,req *domain.UpadateMatchScoreInput) (*domain.UpadateMatchScoreInput,error)
-	CheckAndAdvanceRound(tournament_id int, round string) (bool, error)	
-	GetGroupCount(tournament_id int) (int, error)
-	GenerateKnockoutStage(tournament_id int) (bool, error)
-	GenerateQuarterFinals(tournament_id int) (bool, error)
-	GenerateSemiFinals(tournament_id int) (bool, error)
-	GenerateFinal(tournament_id int) (bool, error)
-	GetLeaderboard(tournament_id int) (map[int][]domain.PlayerStat, error)
-	GetTournamentType(tournament_id int) (string, error)
-	LeagueStyleSchedule(tournament_id int, approvedParticipants []*domain.Participant) error
-	VerifyTournamentOwner(tournament_id int, user_id int) (bool, error)
+	CreateTournament(ctx context.Context, created_by int, request domain.TournamentCreateRequest) error
+	GetTournamentByID(ctx context.Context, id int) (*domain.Tournament, error)
+	GetAllTournaments(ctx context.Context, tournament_owner_id int) ([]*domain.Tournament, error)
+	UpdateTournament(ctx context.Context, tournament_owner_id int, tournament_id int, tournament domain.TournamentCreateRequest) error
+	DeleteTournament(ctx context.Context, tournament_owner_id int, tournament_id int) error
+	ApproveParticipant(ctx context.Context, tournament_owner_id int, req domain.ParticipantRequest) error
+	RejectParticipant(ctx context.Context, tournament_owner_id int, req domain.ParticipantRequest) error
+	AddParticipant(ctx context.Context, tournament_owner_id int, participant domain.ParticipantRequest) error
+	RemoveParticipant(ctx context.Context, tournament_owner_id int, req domain.ParticipantRequest) error
+	GetAllParticipant(ctx context.Context, tournament_id int) ([]*domain.Participant, error)
+	GetApprovedParticipants(ctx context.Context, tournament_id int) ([]*domain.Participant, error)
+	CreateMatchSchedules(ctx context.Context, tournament_id int, group_count int, approvedParticipants []*domain.Participant) error
+	GenerateGroups(ctx context.Context, tournament_id int, groupCount int, approvedParticipants []*domain.Participant) error
+	GetAllMatches(ctx context.Context, tournament_id int) ([]*domain.Match, error)
+	UpdateScore(ctx context.Context,tournament_owner_id int,req *domain.UpadateMatchScoreInput) (*domain.UpadateMatchScoreInput,error)
+	CheckAndAdvanceRound(ctx context.Context,tournament_id int, round string) (bool, error)	
+	GetGroupCount(ctx context.Context, tournament_id int) (int, error)
+	GenerateKnockoutStage(ctx context.Context, tournament_id int) (bool, error)
+	GenerateQuarterFinals(ctx context.Context, tournament_id int) (bool, error)
+	GenerateSemiFinals(ctx context.Context, tournament_id int) (bool, error)
+	GenerateFinal(ctx context.Context, tournament_id int) (bool, error)
+	GetLeaderboard(ctx context.Context, tournament_id int) (map[int][]domain.PlayerStat, error)
+	GetTournamentType(ctx context.Context, tournament_id int) (string, error)
+	LeagueStyleSchedule(ctx context.Context, tournament_id int, approvedParticipants []*domain.Participant) error
+	VerifyTournamentOwner(ctx context.Context, tournament_id int, user_id int) (bool, error)
 }
 
 type TournamentManagerHandler struct {

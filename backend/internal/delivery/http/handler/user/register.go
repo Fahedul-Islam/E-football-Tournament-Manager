@@ -34,7 +34,7 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		Role:         req.Role,
 		CreatedAt:    now,
 	}
-	if err := h.userService.Register(user); err != nil {
+	if err := h.userService.Register(r.Context(),user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

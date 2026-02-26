@@ -17,7 +17,7 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	user, err := h.userService.Authenticate(req.Email, req.Password, req.Role)
+	user, err := h.userService.Authenticate(r.Context(),req.Email, req.Password, req.Role)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

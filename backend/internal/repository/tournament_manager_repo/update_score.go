@@ -1,15 +1,16 @@
 package tournamentmanagerrepo
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"tournament-manager/internal/domain"
 )
 
-func (r *tournamentManagerRepo) UpdateScore(tournament_owner_id int, req *domain.UpadateMatchScoreInput) (*domain.UpadateMatchScoreInput, error) {
+func (r *tournamentManagerRepo) UpdateScore(ctx context.Context, tournament_owner_id int, req *domain.UpadateMatchScoreInput) (*domain.UpadateMatchScoreInput, error) {
 	// 1️⃣ Validate tournament ownership
 	var validOwner bool
-	err := r.db.QueryRow(`
+	err := r.db.QueryRowContext(ctx, `
 		SELECT EXISTS(SELECT 1 FROM tournaments WHERE id = $1 AND created_by = $2)
 	`, req.TournamentID, tournament_owner_id).Scan(&validOwner)
 	if err != nil {
@@ -20,7 +21,7 @@ func (r *tournamentManagerRepo) UpdateScore(tournament_owner_id int, req *domain
 	}
 
 	// 2️⃣ Update the match record
-	_, err = r.db.Exec(`
+	_, err = r.db.ExecContext(ctx, `
 		UPDATE matches 
 		SET participant_a_score = $1, participant_b_score = $2, status = $3
 		WHERE tournament_id = $4 AND participant_a_id = $5 AND participant_b_id = $6 AND round = $7
@@ -31,21 +32,21 @@ func (r *tournamentManagerRepo) UpdateScore(tournament_owner_id int, req *domain
 
 	// 3️⃣ Get group_id of this match
 	var groupID sql.NullInt64
-	err = r.db.QueryRow(`
+	err = r.db.QueryRowContext(ctx, `
 		SELECT group_id FROM matches
 		WHERE tournament_id = $1 AND participant_a_id = $2 AND participant_b_id = $3 AND round = $4
 	`, req.TournamentID, req.ParticipantAID, req.ParticipantBID, req.Round).Scan(&groupID)
 	if err != nil {
-		err = r.db.QueryRow(`
+		err = r.db.QueryRowContext(ctx, `
 		SELECT group_id FROM matches
-		WHERE tournament_id = $1 AND participant_a_id = $2 AND participant_b_id = $3 AND round = $4`, req.TournamentID,req.ParticipantBID,req.ParticipantAID, req.Round).Scan(&groupID)
+		WHERE tournament_id = $1 AND participant_a_id = $2 AND participant_b_id = $3 AND round = $4`, req.TournamentID, req.ParticipantBID, req.ParticipantAID, req.Round).Scan(&groupID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch group ID: %w", err)
 		}
 	}
 
 	// 4️⃣ Begin transaction for player_stats update
-	tx, err := r.db.Begin()
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -69,7 +70,7 @@ func (r *tournamentManagerRepo) UpdateScore(tournament_owner_id int, req *domain
 	}
 
 	// Participant A stats update
-	_, err = tx.Exec(`
+	_, err = tx.ExecContext(ctx, `
 		UPDATE player_stats
 		SET 
 			matches_played = matches_played + 1,
@@ -87,7 +88,7 @@ func (r *tournamentManagerRepo) UpdateScore(tournament_owner_id int, req *domain
 	}
 
 	// Participant B stats update
-	_, err = tx.Exec(`
+	_, err = tx.ExecContext(ctx, `
 		UPDATE player_stats
 		SET 
 			matches_played = matches_played + 1,

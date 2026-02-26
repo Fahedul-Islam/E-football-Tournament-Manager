@@ -1,13 +1,16 @@
 package repository
 
-import "tournament-manager/internal/domain"
+import (
+	"context"
+	"tournament-manager/internal/domain"
+)
 
 // UserRepository defines the interface for user data access operations
 type UserRepository interface {
-	Register(user domain.User) error
-	Authenticate(email, password, role string) (*domain.User, error)
-	GetAllUsers() ([]*domain.User, error)
-	GetUserByID(id int) (*domain.User, error)
-	UpdateUser(id int, user domain.User) error
-	DeleteUser(id int) error
+	Register(ctx context.Context, user domain.User) error
+	Authenticate(ctx context.Context, email, password, role string) (*domain.User, error)
+	GetAllUsers(ctx context.Context) ([]*domain.User, error)
+	GetUserByID(ctx context.Context, id int) (*domain.User, error)
+	UpdateUser(ctx context.Context, id int, user domain.User) error
+	DeleteUser(ctx context.Context, id int) error
 }

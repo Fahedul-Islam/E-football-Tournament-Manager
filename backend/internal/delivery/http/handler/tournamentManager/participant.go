@@ -14,7 +14,7 @@ func (h *TournamentManagerHandler) GetAllParticipant(w http.ResponseWriter, r *h
 	if err != nil {
 		http.Error(w, "Invalid tournament id", http.StatusBadRequest)
 	}
-	participant, err := h.tournamentService.GetAllParticipant(tournament_id)
+	participant, err := h.tournamentService.GetAllParticipant(r.Context(), tournament_id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
@@ -33,7 +33,7 @@ func (h *TournamentManagerHandler) AddParticipant(w http.ResponseWriter, r *http
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-	if err := h.tournamentService.AddParticipant(tournament_owner_id, participant); err != nil {
+	if err := h.tournamentService.AddParticipant(r.Context(), tournament_owner_id, participant); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -54,7 +54,7 @@ func (h *TournamentManagerHandler) ApproveParticipant(w http.ResponseWriter, r *
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := h.tournamentService.ApproveParticipant(tournament_owner_id,req); err != nil {
+	if err := h.tournamentService.ApproveParticipant(r.Context(), tournament_owner_id,req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -73,7 +73,7 @@ func (h *TournamentManagerHandler) RejectParticipant(w http.ResponseWriter, r *h
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := h.tournamentService.RejectParticipant(tournament_owner_id,req); err != nil {
+	if err := h.tournamentService.RejectParticipant(r.Context(), tournament_owner_id,req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -93,7 +93,7 @@ func (h *TournamentManagerHandler) RemoveParticipant(w http.ResponseWriter, r *h
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := h.tournamentService.RemoveParticipant(tournament_owner_id, req); err != nil {
+	if err := h.tournamentService.RemoveParticipant(r.Context(), tournament_owner_id, req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

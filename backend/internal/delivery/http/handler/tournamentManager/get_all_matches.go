@@ -13,7 +13,7 @@ func (h *TournamentManagerHandler) GetAllMatches(w http.ResponseWriter, r *http.
 		http.Error(w, "Invalid tournament ID", http.StatusBadRequest)
 		return
 	}
-	matches, err := h.tournamentService.GetAllMatches(tournament_id)
+	matches, err := h.tournamentService.GetAllMatches(r.Context(),tournament_id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

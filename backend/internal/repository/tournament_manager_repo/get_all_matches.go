@@ -1,9 +1,12 @@
 package tournamentmanagerrepo
 
-import "tournament-manager/internal/domain"
+import (
+	"context"
+	"tournament-manager/internal/domain"
+)
 
-func (r *tournamentManagerRepo) GetAllMatches(tournament_id int) ([]*domain.Match, error) {
-	rows, err := r.db.Query("SELECT * FROM matches WHERE tournament_id=$1", tournament_id)
+func (r *tournamentManagerRepo) GetAllMatches(ctx context.Context, tournament_id int) ([]*domain.Match, error) {
+	rows, err := r.db.QueryContext(ctx, "SELECT * FROM matches WHERE tournament_id=$1", tournament_id)
 	if err != nil {
 		return nil, err
 	}
