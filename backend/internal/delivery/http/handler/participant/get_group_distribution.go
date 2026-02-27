@@ -20,17 +20,7 @@ func (h *ParticipantHandler) GetGroupDistribution(w http.ResponseWriter, r *http
 		http.Error(w, "Invalid tournament ID", http.StatusBadRequest)
 		return
 	}
-	isApproved, err := h.service.IsApprovedParticipant(r.Context(), tournament_id, user_id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if !isApproved {
-		http.Error(w, "User is not approved", http.StatusForbidden)
-		return
-	}
-
-	group_teams, err := h.service.GetGroupDistribution(r.Context(), tournament_id)
+	group_teams, err := h.service.DistributeGroup(r.Context(), tournament_id, user_id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

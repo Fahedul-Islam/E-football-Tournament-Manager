@@ -10,5 +10,5 @@ type ParticipantRepository interface {
 	RequestToJoinTournament(ctx context.Context, req domain.ParticipantRequest) error
 	IsApprovedParticipant(ctx context.Context, tournamentID int, userID int) (bool, error)
 	GetGroupDistribution(ctx context.Context, tournamentID int) ([]*domain.Group, error)
-	SeeMatchSchedule(ctx context.Context, tournamentID int) ([]*domain.Match, error)
+	GetMatchSchedule(ctx context.Context, tournamentID int) ([]*domain.Match, error)
 }

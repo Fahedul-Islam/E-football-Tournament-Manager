@@ -7,9 +7,8 @@ import (
 
 type Service interface {
 	RequestToJoinTournament(context.Context,domain.ParticipantRequest) error
-	IsApprovedParticipant(ctx context.Context,tournament_id int, user_id int) (bool, error)
-	GetGroupDistribution(ctx context.Context,tournament_id int) ([]*domain.Group, error)
-	SeeMatchSchedule(ctx context.Context,tournament_id int) ([]*domain.Match, error)
+	DistributeGroup(ctx context.Context,tournament_id int, user_id int) ([]*domain.Group, error)
+	MatchSchedule(ctx context.Context,tournament_id int, user_id int) ([]*domain.Match, error)
 }
 
 type ParticipantHandler struct {

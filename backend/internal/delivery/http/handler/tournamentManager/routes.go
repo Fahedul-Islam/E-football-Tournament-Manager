@@ -7,7 +7,7 @@ import (
 
 func (h *TournamentManagerHandler) RegisterRoutes(mux *http.ServeMux, manager *middleware.MiddlewareManager) {
 	mux.Handle("POST /tournaments/create", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.CreateTournament)))
-	mux.Handle("GET /tournaments", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.GetAllTournaments)))
+	mux.Handle("GET /tournaments", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.AllTournaments)))
 	mux.Handle("DELETE /tournaments", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.DeleteTournament)))
 	mux.Handle("PUT /tournaments", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.UpdateTournament)))
 	mux.Handle("PATCH /tournaments/approve", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.ApproveParticipant)))

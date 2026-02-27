@@ -107,7 +107,7 @@ func (r *participantRepo) GetGroupDistribution(ctx context.Context, tournament_i
 	return groups, nil
 }
 
-func (r *participantRepo) SeeMatchSchedule(ctx context.Context, tournament_id int) ([]*domain.Match, error) {
+func (r *participantRepo) GetMatchSchedule(ctx context.Context, tournament_id int) ([]*domain.Match, error) {
 	rows, err := r.db.QueryContext(ctx, "SELECT * FROM matches WHERE tournament_id=$1", tournament_id)
 	if err != nil {
 		return nil, err

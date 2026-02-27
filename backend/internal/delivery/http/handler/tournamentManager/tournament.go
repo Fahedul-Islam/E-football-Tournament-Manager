@@ -71,7 +71,7 @@ func (h *TournamentManagerHandler) GetTournamentByID(w http.ResponseWriter, r *h
 	utils.SendData(w, tournament, http.StatusOK)
 }
 
-func (h *TournamentManagerHandler) GetAllTournaments(w http.ResponseWriter, r *http.Request) {
+func (h *TournamentManagerHandler) AllTournaments(w http.ResponseWriter, r *http.Request) {
 	str_t_owner_id := r.Context().Value("user_id").(string)
 	tournament_owner_id, err := strconv.Atoi(str_t_owner_id)
 	if err != nil {

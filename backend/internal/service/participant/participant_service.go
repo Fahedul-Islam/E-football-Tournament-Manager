@@ -2,6 +2,7 @@ package participant
 
 import (
 	"context"
+	"errors"
 	"tournament-manager/internal/delivery/http/handler/participant"
 	"tournament-manager/internal/domain"
 	"tournament-manager/internal/domain/repository"
@@ -32,17 +33,26 @@ func (s *service) RequestToJoinTournament(ctx context.Context, req domain.Partic
 	return s.participantRepo.RequestToJoinTournament(ctx, req)
 }
 
-// IsApprovedParticipant checks if a user is an approved participant
-func (s *service) IsApprovedParticipant(ctx context.Context, tournamentID int, userID int) (bool, error) {
-	return s.participantRepo.IsApprovedParticipant(ctx, tournamentID, userID)
-}
-
 // GetGroupDistribution returns the group distribution for a tournament
-func (s *service) GetGroupDistribution(ctx context.Context, tournamentID int) ([]*domain.Group, error) {
+func (s *service) DistributeGroup(ctx context.Context, tournamentID int, user_id int) ([]*domain.Group, error) {
+	isApproved, err := s.participantRepo.IsApprovedParticipant(ctx, tournamentID, user_id)
+	if err != nil {
+		return nil, err
+	}
+	if !isApproved {
+		return nil, errors.New("user is not an approved participant")
+	}
 	return s.participantRepo.GetGroupDistribution(ctx, tournamentID)
 }
 
 // SeeMatchSchedule returns the match schedule for a tournament
-func (s *service) SeeMatchSchedule(ctx context.Context, tournamentID int) ([]*domain.Match, error) {
-	return s.participantRepo.SeeMatchSchedule(ctx, tournamentID)
+func (s *service) MatchSchedule(ctx context.Context, tournamentID int, user_id int) ([]*domain.Match, error) {
+	isApproved, err := s.participantRepo.IsApprovedParticipant(ctx, tournamentID, user_id)
+	if err != nil {
+		return nil, err
+	}
+	if !isApproved {
+		return nil, errors.New("user is not an approved participant")
+	}
+	return s.participantRepo.GetMatchSchedule(ctx, tournamentID)
 }
