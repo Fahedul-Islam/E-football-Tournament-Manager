@@ -3,9 +3,9 @@ package userrepo
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"tournament-manager/internal/domain"
 	"tournament-manager/internal/domain/repository"
-	"tournament-manager/utils"
 )
 
 type userRepo struct {
@@ -21,14 +21,13 @@ func (r *userRepo) Register(ctx context.Context, user domain.User) error {
 	return r.db.QueryRowContext(ctx, query, user.Username, user.Email, user.PasswordHash, user.Role).Scan(&user.ID)
 }
 
-func (r *userRepo) Authenticate(ctx context.Context, email, password, role string) (*domain.User, error) {
+func (r *userRepo) GetUserData(ctx context.Context, email, password, role string) (*domain.User, error) {
 	var user domain.User
 	query := `SELECT * FROM users WHERE email = $1 AND role = $2`
 	if err := r.db.QueryRowContext(ctx, query, email, role).Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.Role, &user.CreatedAt); err != nil {
-		return nil, err
-	}
-
-	if err := utils.CheckPasswordHash(password, user.PasswordHash); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("user not found")
+		}
 		return nil, err
 	}
 	return &user, nil

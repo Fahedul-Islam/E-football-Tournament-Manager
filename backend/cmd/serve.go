@@ -49,12 +49,12 @@ func Serve() {
 	participantRepo := participantrepo.NewParticipantRepo(dB)
 
 	// Initialize services
-	userSvc := userservice.NewUserService(userRepo)
+	userSvc := userservice.NewUserService(cfg, userRepo)
 	tournamentSvc := tournamentservice.NewTournamentService(tournamentRepo)
 	participantSvc := participantservice.NewParticipantService(participantRepo)
 
 	// Initialize handlers with services
-	userHandler := user.NewUserHandler(cfg, userSvc)
+	userHandler := user.NewUserHandler(userSvc)
 	userHandler.RegisterRoutes(mux, middlewareManager)
 
 	tournamentHandler := tournamentmanager.NewTournamentManagerHandler(tournamentSvc)

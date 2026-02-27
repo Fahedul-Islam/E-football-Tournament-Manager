@@ -9,3 +9,10 @@ type User struct {
 	Role         string "json:\"role\""
 	CreatedAt    string "json:\"created_at\""
 }
+
+type LoginResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    string `json:"expires_in"`
+	TokenType    string `json:"token_type"`
+}

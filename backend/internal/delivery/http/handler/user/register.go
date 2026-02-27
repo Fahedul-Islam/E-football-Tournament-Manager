@@ -19,18 +19,12 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := utils.ValidatePassword(req.Password); err != nil {
-		http.Error(w, "Invalid password", http.StatusBadRequest)
-		return
-	}
-
-	// Hash password before storing
-	hashedPassword, _ := utils.HashPassword(req.Password)
+	
 	now := time.Now().Format(time.RFC3339)
 	user := domain.User{
 		Username:     req.Username,
 		Email:        req.Email,
-		PasswordHash: hashedPassword,
+		PasswordHash: req.Password,
 		Role:         req.Role,
 		CreatedAt:    now,
 	}
