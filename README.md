@@ -428,9 +428,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👤 Author
 
-**Fhedul**
+**Fahedul Islam**
 
-- GitHub: [@fhedul](https://github.com/fhedul)
+- GitHub: [@fahedul-islam](https://github.com/Fahedul-Islam)
 
 ---
 
