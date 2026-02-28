@@ -334,8 +334,9 @@ curl -X POST http://localhost:8080/register \
   -H "Content-Type: application/json" \
   -d '{
     "username": "player1",
-    "email": "player1@email.com",
-    "password": "securePass123"
+    "email": "player1@gmail.com",
+    "password": "securePass123",
+    "role": "player"
   }'
 ```
 
@@ -347,8 +348,8 @@ curl -X POST http://localhost:8080/tournaments/create \
   -H "Authorization: Bearer <admin_token>" \
   -d '{
     "name": "Champions League 2024",
-    "description": "Annual e-football championship",
-    "tournament_type": "group_knockout",
+    "description": "Annual e-football championship with group stage and knockout rounds",
+    "tournament_type": "group+knockout",
     "max_players": 32,
     "start_date": "2024-03-01",
     "end_date": "2024-03-31"

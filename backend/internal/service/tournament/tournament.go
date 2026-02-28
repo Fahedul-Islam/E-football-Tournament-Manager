@@ -8,7 +8,7 @@ import (
 
 // CreateTournament creates a new tournament
 func (s *service) CreateTournament(ctx context.Context, createdBy int, req domain.TournamentCreateRequest) error {
-	if req.TournamentType != "knockout" && req.TournamentType != "league" {
+	if req.TournamentType != "knockout" && req.TournamentType != "league" && req.TournamentType != "group+knockout" {
 		return errors.New("Invalid Tournament Type!")
 	}
 	if req.MaxPlayers < 3 {
@@ -35,7 +35,7 @@ func (s *service) GetAllTournaments(ctx context.Context, tournamentOwnerID int) 
 
 // UpdateTournament updates a tournament
 func (s *service) UpdateTournament(ctx context.Context, tournamentOwnerID int, tournamentID int, req domain.TournamentCreateRequest) error {
-	if req.TournamentType != "knockout" && req.TournamentType != "league" {
+	if req.TournamentType != "knockout" && req.TournamentType != "league" && req.TournamentType != "group+knockout" {
 		return errors.New("Invalid Tournament Type!")
 	}
 	if req.MaxPlayers < 3 {

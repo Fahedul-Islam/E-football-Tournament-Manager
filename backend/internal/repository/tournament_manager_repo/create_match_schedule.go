@@ -72,8 +72,8 @@ func (r *tournamentManagerRepo) CreateMatchSchedules(ctx context.Context, tourna
 	defer matchStmt.Close()
 
 	playerStatStmt, err := tx.PrepareContext(ctx, `
-		INSERT INTO player_stats (group_id, participant_id)
-		VALUES ($1, $2)
+		INSERT INTO player_stats (tournament_id, group_id, participant_id)
+		VALUES ($1, $2, $3)
 		ON CONFLICT (group_id, participant_id) DO NOTHING
 	`)
 	if err != nil {
@@ -85,7 +85,7 @@ func (r *tournamentManagerRepo) CreateMatchSchedules(ctx context.Context, tourna
 	for groupID, participants := range participantsPerGroup {
 		// Insert player stats for each participant
 		for _, pid := range participants {
-			if _, err := playerStatStmt.ExecContext(ctx, groupID, pid); err != nil {
+			if _, err := playerStatStmt.ExecContext(ctx, tournamentID, groupID, pid); err != nil {
 				return fmt.Errorf("failed to insert player stats for participant %d in group %d: %w", pid, groupID, err)
 			}
 		}
@@ -127,13 +127,13 @@ func (r *tournamentManagerRepo) LeagueStyleSchedule(ctx context.Context, tournam
 
 	for i, participantA := range approvedParticipants {
 		playerStatStmt, err := tx.PrepareContext(ctx, `
-			INSERT INTO player_stats (participant_id) VALUES ($1)
+			INSERT INTO player_stats (tournament_id, participant_id) VALUES ($1, $2)
 		`)
 		if err != nil {
 			return err
 		}
 		defer playerStatStmt.Close()
-		if _, err := playerStatStmt.ExecContext(ctx, participantA.ID); err != nil {
+		if _, err := playerStatStmt.ExecContext(ctx, tournament_id, participantA.ID); err != nil {
 			return fmt.Errorf("fail to insert player stat: %w", err)
 		}
 		for j, participantB := range approvedParticipants {
