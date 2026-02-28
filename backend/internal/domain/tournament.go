@@ -22,3 +22,19 @@ type TournamentCreateRequest struct {
 	StartDate      string `json:"start_date"`
 	EndDate        string `json:"end_date"`
 }
+
+// different round of a tournament
+const (
+	GroupStage    string = "Group Stage"
+	RoundOf16     string = "Round of 16"
+	QuarterFinals string = "Quarter Finals"
+	Semifinals    string = "Semifinals"
+	Final         string = "Final"
+)
+
+// type of tournament
+const (
+	Knockout          string = "knockout"
+	League            string = "league"
+	GroupPlusKnockout string = "group+knockout"
+)

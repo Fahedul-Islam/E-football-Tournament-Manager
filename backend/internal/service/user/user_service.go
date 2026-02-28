@@ -33,8 +33,8 @@ func NewUserService(cfg *config.Config, userRepo UserRepo) Service {
 
 // Register registers a new user
 func (s *service) Register(ctx context.Context, user domain.User) error {
-	if !utils.IsEmailValid(user.Email) {
-		return errors.New("Invalid Email Provided")
+	if err := utils.IsEmailValid(user.Email); err != nil {
+		return err
 	}
 	hashedPassword, _ := utils.HashPassword(user.PasswordHash)
 	user.PasswordHash = hashedPassword
@@ -47,8 +47,8 @@ func (s *service) Register(ctx context.Context, user domain.User) error {
 
 // Authenticate authenticates a user with email, password and role
 func (s *service) Authenticate(ctx context.Context, email, password, role string) (*domain.LoginResponse, error) {
-	if !utils.IsEmailValid(email) {
-		return nil, errors.New("Invalid Email Provided")
+	if err:= utils.IsEmailValid(email); err != nil {
+		return nil, err
 	}
 	user, err := s.userRepo.GetUserData(ctx, email, password, role)
 	if err != nil {

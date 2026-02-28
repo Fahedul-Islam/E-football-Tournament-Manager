@@ -46,7 +46,7 @@ func (s *service) CreateMatchSchedules(ctx context.Context, tournamentID int, to
 		return err
 	}
 	// handling league style tournament
-	if tournment_type == "league" {
+	if tournment_type == domain.League {
 		return s.tournamentRepo.LeagueStyleSchedule(ctx, tournamentID, approvedParticipants)
 	}
 
@@ -68,6 +68,9 @@ func (s *service) GetAllMatches(ctx context.Context, tournamentID int) ([]*domai
 
 // UpdateScore updates the score for a match
 func (s *service) UpdateScore(ctx context.Context, tournamentOwnerID int, req *domain.UpdateMatchScoreInput) (*domain.UpdateMatchScoreInput, error) {
+	if (req.Round == domain.RoundOf16 || req.Round == domain.QuarterFinals || req.Round == domain.Semifinals || req.Round == domain.Final) && (req.ScoreA == req.ScoreB) {
+		return nil, errors.New("Score must be different for knockout rounds")
+	}
 
 	result, err := s.tournamentRepo.UpdateScore(ctx, tournamentOwnerID, req)
 	if err != nil {
@@ -82,21 +85,21 @@ func (s *service) UpdateScore(ctx context.Context, tournamentOwnerID int, req *d
 		return nil, err
 	}
 
-	if (thisRoundDone && tournament_type == "group+knockout") || (thisRoundDone && tournament_type == "knockout") {
+	if (thisRoundDone && tournament_type == domain.GroupPlusKnockout) || (thisRoundDone && tournament_type == domain.Knockout) {
 		switch req.Round {
-		case "Group Stage":
+		case domain.GroupStage:
 			_, err = s.tournamentRepo.GenerateKnockoutStage(ctx, req.TournamentID)
 			if err != nil {
 				return nil, err
 			}
 
-		case "Round of 16":
+		case domain.RoundOf16:
 			_, err = s.tournamentRepo.GenerateQuarterFinals(ctx, req.TournamentID)
-		case "Quarter Finals":
+		case domain.QuarterFinals:
 			_, err = s.tournamentRepo.GenerateSemiFinals(ctx, req.TournamentID)
-		case "Semifinals":
+		case domain.Semifinals:
 			_, err = s.tournamentRepo.GenerateFinal(ctx, req.TournamentID)
-		case "Final":
+		case domain.Final:
 			fmt.Println("Tournament has concluded.")
 		default:
 			return nil, errors.New("Unknown round")
@@ -108,4 +111,3 @@ func (s *service) UpdateScore(ctx context.Context, tournamentOwnerID int, req *d
 	}
 	return result, nil
 }
-
