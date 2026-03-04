@@ -268,34 +268,34 @@ backend/
 
 ### Tournament Management (Admin Only)
 
-| Method   | Endpoint                                      | Description               |
-| -------- | --------------------------------------------- | ------------------------- |
-| `POST`   | `/tournaments/create`                         | Create a new tournament   |
-| `GET`    | `/tournaments`                                | Get all tournaments       |
-| `PUT`    | `/tournaments?id={id}`                        | Update tournament         |
-| `DELETE` | `/tournaments?id={id}`                        | Delete tournament         |
-| `GET`    | `/tournaments/create_match_schedules?id={id}` | Generate groups & matches |
-| `GET`    | `/tournaments/matches?id={id}`                | Get all matches           |
-| `PATCH`  | `/tournaments/matche-score/update`            | Update match score        |
-| `GET`    | `/tournaments/leaderboard?id={id}`            | Get group standings       |
+| Method   | Endpoint                                                                     | Description               |
+| -------- | ---------------------------------------------------------------------------- | ------------------------- |
+| `POST`   | `/tournaments/create`                                                        | Create a new tournament   |
+| `GET`    | `/tournaments`                                                               | Get all tournaments       |
+| `PUT`    | `/tournaments?id={id}`                                                       | Update tournament         |
+| `DELETE` | `/tournaments?id={id}`                                                       | Delete tournament         |
+| `GET`    | `/tournaments/create_match_schedules?tournament_id={id}&group_count={count}` | Generate groups & matches |
+| `GET`    | `/tournaments/matches?tournament_id={id}`                                    | Get all matches           |
+| `PATCH`  | `/tournaments/matche-score/update`                                           | Update match score        |
+| `GET`    | `/tournaments/leaderboard?tournament_id={id}`                                | Get group standings       |
 
 ### Participant Management
 
-| Method  | Endpoint                              | Description              | Auth   |
-| ------- | ------------------------------------- | ------------------------ | ------ |
-| `POST`  | `/join-tournament`                    | Request to join          | Player |
-| `PATCH` | `/tournaments/approve?p_id={id}`      | Approve participant      | Admin  |
-| `PATCH` | `/tournaments/reject?p_id={id}`       | Reject participant       | Admin  |
-| `POST`  | `/tournaments/addparticipant`         | Add participant directly | Admin  |
-| `POST`  | `/tournaments/removeparticipant`      | Remove participant       | Admin  |
-| `GET`   | `/tournaments/participants?t_id={id}` | Get all participants     | Admin  |
+| Method  | Endpoint                                               | Description              | Auth   |
+| ------- | ------------------------------------------------------ | ------------------------ | ------ |
+| `POST`  | `/join-tournament?tournament_id={id}&team_name={name}` | Request to join          | Player |
+| `PATCH` | `/tournaments/approve`                                 | Approve participant      | Admin  |
+| `PATCH` | `/tournaments/reject`                                  | Reject participant       | Admin  |
+| `POST`  | `/tournaments/addparticipant`                          | Add participant directly | Admin  |
+| `POST`  | `/tournaments/removeparticipant`                       | Remove participant       | Admin  |
+| `GET`   | `/tournaments/participants?tournament_id={id}`         | Get all participants     | Admin  |
 
 ### Player Endpoints
 
-| Method | Endpoint                                 | Description            | Auth   |
-| ------ | ---------------------------------------- | ---------------------- | ------ |
-| `GET`  | `/tournament/group-distribution?id={id}` | View group assignments | Player |
-| `GET`  | `/tournament/match-schedule?id={id}`     | View match schedule    | Player |
+| Method | Endpoint                                            | Description            | Auth   |
+| ------ | --------------------------------------------------- | ---------------------- | ------ |
+| `GET`  | `/tournament/group-distribution?tournament_id={id}` | View group assignments | Player |
+| `GET`  | `/tournament/match-schedule?tournament_id={id}`     | View match schedule    | Player |
 
 ---
 
@@ -370,6 +370,34 @@ curl -X PATCH http://localhost:8080/tournaments/matche-score/update \
     "score_a": 3,
     "score_b": 1
   }'
+```
+
+### Join Tournament (Player)
+
+```bash
+curl -X POST "http://localhost:8080/join-tournament?tournament_id=1&team_name=MyTeam" \
+  -H "Authorization: Bearer <player_token>"
+```
+
+### Generate Match Schedules (Admin)
+
+```bash
+curl -X GET "http://localhost:8080/tournaments/create_match_schedules?tournament_id=1&group_count=4" \
+  -H "Authorization: Bearer <admin_token>"
+```
+
+### Get Group Stage Leaderboard (Admin)
+
+```bash
+curl -X GET "http://localhost:8080/tournaments/leaderboard?tournament_id=1" \
+  -H "Authorization: Bearer <admin_token>"
+```
+
+### View Match Schedule (Player)
+
+```bash
+curl -X GET "http://localhost:8080/tournament/match-schedule?tournament_id=1" \
+  -H "Authorization: Bearer <player_token>"
 ```
 
 ---
