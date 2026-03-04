@@ -27,6 +27,13 @@ type Service interface {
 	GetTournamentType(ctx context.Context, tournament_id int) (string, error)
 	LeagueStyleSchedule(ctx context.Context, tournament_id int) error
 	VerifyTournamentOwner(ctx context.Context, tournament_id int, user_id int) (bool, error)
+
+	//All about announcement
+	CreateAnnouncement(ctx context.Context, tournamentID int, userID int, req domain.AnnouncementCreateRequest) (*domain.Announcement, error)
+	GetAnnouncements(ctx context.Context, tournamentID int, userID int) ([]*domain.Announcement, error)
+	GetAnnouncementByID(ctx context.Context, tournamentID int, announcementID int, userID int) (*domain.Announcement, error)
+	UpdateAnnouncement(ctx context.Context, tournamentID int, announcementID int, userID int, req domain.AnnouncementCreateRequest) (*domain.Announcement, error)
+	DeleteAnnouncement(ctx context.Context, tournamentID int, announcementID int, userID int) error
 }
 
 type TournamentManagerHandler struct {

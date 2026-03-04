@@ -53,9 +53,11 @@ func AuthMiddleware(requiredRole string) func(http.Handler) http.Handler {
 			}
 
 			// Role validation
-			if requiredRole != "" && claims["roles"] != requiredRole {
-				http.Error(w, "Forbidden", http.StatusForbidden)
-				return
+			if requiredRole != "" {
+				if claims["roles"] != requiredRole {
+					http.Error(w, "Forbidden", http.StatusForbidden)
+					return
+				}
 			}
 			userId, err := normalizeUserID(claims["user_id"])
 			if err != nil {

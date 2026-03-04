@@ -32,4 +32,12 @@ type TournamentRepository interface {
 	GetTournamentType(ctx context.Context, tournamentID int) (string, error)
 	LeagueStyleSchedule(ctx context.Context, tournamentID int, approvedParticipants []*domain.Participant) error
 	VerifyTournamentOwner(ctx context.Context, tournamentID int, userID int) (bool, error)
+
+	//All about announcement
+	CreateAnnouncement(ctx context.Context, announcement *domain.Announcement) (*domain.Announcement, error)
+	GetAnnouncements(ctx context.Context, tournamentID int) ([]*domain.Announcement, error)
+	GetAnnouncementByID(ctx context.Context, tournamentID int, announcementID int) (*domain.Announcement, error)
+	UpdateAnnouncement(ctx context.Context, announcement *domain.Announcement) (*domain.Announcement, error)
+	DeleteAnnouncement(ctx context.Context, tournamentID int, announcementID int) error
+
 }
