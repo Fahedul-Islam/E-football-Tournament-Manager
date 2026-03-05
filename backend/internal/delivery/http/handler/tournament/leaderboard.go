@@ -1,4 +1,4 @@
-package tournamentmanager
+package tournament
 
 import (
 	"net/http"

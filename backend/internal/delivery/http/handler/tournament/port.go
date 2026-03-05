@@ -1,4 +1,4 @@
-package tournamentmanager
+package tournament
 
 import (
 	"context"
@@ -20,21 +20,13 @@ type Service interface {
 	CreateMatchSchedules(ctx context.Context, tournament_id int, tournament_owner_id int, groupCount int) error
 	GenerateGroups(ctx context.Context, tournament_id int, groupCount int, approvedParticipants []*domain.Participant) error
 	GetAllMatches(ctx context.Context, tournament_id int) ([]*domain.Match, error)
-	UpdateScore(ctx context.Context,tournament_owner_id int,req *domain.UpdateMatchScoreInput) (*domain.UpdateMatchScoreInput,error)
-	CheckAndAdvanceRound(ctx context.Context,tournament_id int, round string) (bool, error)	
+	UpdateScore(ctx context.Context, tournament_owner_id int, req *domain.UpdateMatchScoreInput) (*domain.UpdateMatchScoreInput, error)
+	CheckAndAdvanceRound(ctx context.Context, tournament_id int, round string) (bool, error)
 	GetGroupCount(ctx context.Context, tournament_id int) (int, error)
 	GetLeaderboard(ctx context.Context, tournament_id int) (map[int][]domain.PlayerStat, error)
 	GetTournamentType(ctx context.Context, tournament_id int) (string, error)
 	LeagueStyleSchedule(ctx context.Context, tournament_id int) error
 	VerifyTournamentOwner(ctx context.Context, tournament_id int, user_id int) (bool, error)
-
-	//All about announcement
-	CreateAnnouncement(ctx context.Context, tournamentID int, userID int, req domain.AnnouncementCreateRequest) (*domain.Announcement, error)
-	GetAnnouncements(ctx context.Context, tournamentID int, userID int) ([]*domain.Announcement, error)
-	GetAnnouncementByID(ctx context.Context, tournamentID int, announcementID int, userID int) (*domain.Announcement, error)
-	UpdateAnnouncement(ctx context.Context, tournamentID int, announcementID int, userID int, req domain.AnnouncementCreateRequest) (*domain.Announcement, error)
-	DeleteAnnouncement(ctx context.Context, tournamentID int, announcementID int, userID int) error
-	GetParticipantsAnnouncementSeenStatus(ctx context.Context, tournamentID int, announcementID int, userID int) (*[]domain.Participant, error)
 }
 
 type TournamentManagerHandler struct {

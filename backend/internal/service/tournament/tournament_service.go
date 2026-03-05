@@ -1,12 +1,12 @@
 package tournament
 
 import (
-	tournamentmanager "tournament-manager/internal/delivery/http/handler/tournamentManager"
+	tournamenthandler "tournament-manager/internal/delivery/http/handler/tournament"
 	"tournament-manager/internal/domain/repository"
 )
 
 type Service interface {
-	tournamentmanager.Service
+	tournamenthandler.Service
 }
 
 // TournamentService implements the tournament service layer

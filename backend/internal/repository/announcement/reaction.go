@@ -1,4 +1,4 @@
-package participantrepo
+package announcement
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"tournament-manager/internal/domain"
 )
 
-func (r *participantRepo) ReactOnAnnouncement(ctx context.Context, tournamentID int, announcementID int, userID int, reaction string) (*domain.Announcement, error) {
+func (r *announcementRepo) ReactOnAnnouncement(ctx context.Context, tournamentID int, announcementID int, userID int, reaction string) (*domain.Announcement, error) {
 	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		return nil, err
@@ -16,7 +16,7 @@ func (r *participantRepo) ReactOnAnnouncement(ctx context.Context, tournamentID 
 
 	switch reaction {
 	case "like":
-		_, err = tx.ExecContext(ctx, "INSERT INTO announcement_reactions ( announcement_id, user_id, reaction_type) VALUES ($1, $2, $3) ON CONFLICT (announcement_id, user_id) DO UPDATE SET reaction_type='like'", announcementID, userID, reaction)
+		_, err = tx.ExecContext(ctx, "INSERT INTO announcement_reactions (announcement_id, user_id, reaction_type) VALUES ($1, $2, $3) ON CONFLICT (announcement_id, user_id) DO UPDATE SET reaction_type='like'", announcementID, userID, reaction)
 		if err != nil {
 			return nil, err
 		}
@@ -47,8 +47,7 @@ func (r *participantRepo) ReactOnAnnouncement(ctx context.Context, tournamentID 
 	return &a, nil
 }
 
-// get previous reaction
-func (r *participantRepo) GetAnnouncementPrevReaction(ctx context.Context, tournamentID int, announcementID int, userID int) (string, error) {
+func (r *announcementRepo) GetAnnouncementPrevReaction(ctx context.Context, tournamentID int, announcementID int, userID int) (string, error) {
 	var reaction string
 	err := r.db.QueryRowContext(ctx, "SELECT reaction_type FROM announcement_reactions WHERE announcement_id=$1 AND user_id=$2", announcementID, userID).Scan(&reaction)
 	if err != nil {
@@ -60,7 +59,7 @@ func (r *participantRepo) GetAnnouncementPrevReaction(ctx context.Context, tourn
 	return reaction, nil
 }
 
-func (r *participantRepo) RemoveAnnouncementReaction(ctx context.Context, tournamentID int, announcementID int, userID int, reaction string) (*domain.Announcement, error) {
+func (r *announcementRepo) RemoveAnnouncementReaction(ctx context.Context, tournamentID int, announcementID int, userID int, reaction string) (*domain.Announcement, error) {
 	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		return nil, err
@@ -73,7 +72,7 @@ func (r *participantRepo) RemoveAnnouncementReaction(ctx context.Context, tourna
 		return nil, err
 	}
 
-	// decrease the likes or dislikes count in announcements table
+	// Decrease the likes or dislikes count in announcements table
 	switch reaction {
 	case "like":
 		_, err = tx.ExecContext(ctx, "UPDATE announcements SET likes_count = GREATEST(likes_count - 1, 0) WHERE id=$1 AND tournament_id=$2", announcementID, tournamentID)

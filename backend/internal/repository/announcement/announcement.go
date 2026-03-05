@@ -1,11 +1,11 @@
-package tournamentmanagerrepo
+package announcement
 
 import (
 	"context"
 	"tournament-manager/internal/domain"
 )
 
-func (r *tournamentManagerRepo) CreateAnnouncement(ctx context.Context, announcement *domain.Announcement) (*domain.Announcement, error) {
+func (r *announcementRepo) CreateAnnouncement(ctx context.Context, announcement *domain.Announcement) (*domain.Announcement, error) {
 	query := `INSERT INTO announcements (tournament_id, author_id, title, content, announcement_type, is_pinned, is_commentable) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
 	err := r.db.QueryRowContext(ctx, query,
 		announcement.TournamentID,
@@ -22,7 +22,7 @@ func (r *tournamentManagerRepo) CreateAnnouncement(ctx context.Context, announce
 	return announcement, nil
 }
 
-func (r *tournamentManagerRepo) GetAnnouncements(ctx context.Context, tournamentID int) ([]*domain.Announcement, error) {
+func (r *announcementRepo) GetAnnouncements(ctx context.Context, tournamentID int) ([]*domain.Announcement, error) {
 	query := `SELECT id, tournament_id, author_id, title, content, announcement_type, is_pinned, is_commentable, likes_count, dislikes_count, comments_count, created_at, updated_at FROM announcements WHERE tournament_id = $1 ORDER BY created_at DESC`
 	rows, err := r.db.QueryContext(ctx, query, tournamentID)
 	if err != nil {
@@ -41,13 +41,14 @@ func (r *tournamentManagerRepo) GetAnnouncements(ctx context.Context, tournament
 	return announcements, nil
 }
 
-func (r *tournamentManagerRepo) GetAnnouncementByID(ctx context.Context, tournamentID int, announcementID int, userID int) (*domain.Announcement, error) {
+func (r *announcementRepo) GetAnnouncementByID(ctx context.Context, tournamentID int, announcementID int, userID int) (*domain.Announcement, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
-	// marked the announcement as seen by the user, if not already marked
+
+	// Mark the announcement as seen by the user, if not already marked
 	_, err = tx.ExecContext(ctx, "INSERT INTO announcement_seen (announcement_id, user_id, is_seen, seen_at) VALUES ($1, $2, true, NOW()) ON CONFLICT (announcement_id, user_id) DO NOTHING", announcementID, userID)
 	if err != nil {
 		return nil, err
@@ -71,7 +72,7 @@ func (r *tournamentManagerRepo) GetAnnouncementByID(ctx context.Context, tournam
 	return &a, nil
 }
 
-func (r *tournamentManagerRepo) UpdateAnnouncement(ctx context.Context, announcement *domain.Announcement) (*domain.Announcement, error) {
+func (r *announcementRepo) UpdateAnnouncement(ctx context.Context, announcement *domain.Announcement) (*domain.Announcement, error) {
 	query := `UPDATE announcements SET title = $1, content = $2, announcement_type = $3, is_pinned = $4, is_commentable = $5, updated_at = NOW() WHERE id = $6 AND tournament_id = $7 RETURNING created_at`
 	err := r.db.QueryRowContext(ctx, query,
 		announcement.Title,
@@ -88,13 +89,13 @@ func (r *tournamentManagerRepo) UpdateAnnouncement(ctx context.Context, announce
 	return announcement, nil
 }
 
-func (r *tournamentManagerRepo) DeleteAnnouncement(ctx context.Context, tournamentID int, announcementID int) error {
+func (r *announcementRepo) DeleteAnnouncement(ctx context.Context, tournamentID int, announcementID int) error {
 	query := `DELETE FROM announcements WHERE id = $1 AND tournament_id = $2`
 	_, err := r.db.ExecContext(ctx, query, announcementID, tournamentID)
 	return err
 }
 
-func (r *tournamentManagerRepo) GetParticipantsAnnouncementSeenStatus(ctx context.Context, tournamentID int, announcementID int, userID int) (*[]domain.Participant, error) {
+func (r *announcementRepo) GetParticipantsAnnouncementSeenStatus(ctx context.Context, tournamentID int, announcementID int, userID int) (*[]domain.Participant, error) {
 	query := `SELECT 
 			p.id,
 			p.user_id,
