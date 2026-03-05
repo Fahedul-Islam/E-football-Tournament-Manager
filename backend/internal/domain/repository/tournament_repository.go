@@ -36,8 +36,9 @@ type TournamentRepository interface {
 	//All about announcement
 	CreateAnnouncement(ctx context.Context, announcement *domain.Announcement) (*domain.Announcement, error)
 	GetAnnouncements(ctx context.Context, tournamentID int) ([]*domain.Announcement, error)
-	GetAnnouncementByID(ctx context.Context, tournamentID int, announcementID int) (*domain.Announcement, error)
+	GetAnnouncementByID(ctx context.Context, tournamentID int, announcementID int, userID int) (*domain.Announcement, error)
 	UpdateAnnouncement(ctx context.Context, announcement *domain.Announcement) (*domain.Announcement, error)
 	DeleteAnnouncement(ctx context.Context, tournamentID int, announcementID int) error
+	GetParticipantsAnnouncementSeenStatus(ctx context.Context, tournamentID int, announcementID int, userID int) (*[]domain.Participant, error)
 
 }

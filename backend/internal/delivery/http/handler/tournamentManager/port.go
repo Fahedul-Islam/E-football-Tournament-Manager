@@ -34,6 +34,7 @@ type Service interface {
 	GetAnnouncementByID(ctx context.Context, tournamentID int, announcementID int, userID int) (*domain.Announcement, error)
 	UpdateAnnouncement(ctx context.Context, tournamentID int, announcementID int, userID int, req domain.AnnouncementCreateRequest) (*domain.Announcement, error)
 	DeleteAnnouncement(ctx context.Context, tournamentID int, announcementID int, userID int) error
+	GetParticipantsAnnouncementSeenStatus(ctx context.Context, tournamentID int, announcementID int, userID int) (*[]domain.Participant, error)
 }
 
 type TournamentManagerHandler struct {

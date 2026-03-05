@@ -26,4 +26,5 @@ func (h *TournamentManagerHandler) RegisterRoutes(mux *http.ServeMux, manager *m
 	mux.Handle("GET /tournaments/announcements/get", manager.With(middleware.AuthMiddleware(""))(http.HandlerFunc(h.GetAnnouncementByID)))
 	mux.Handle("PUT /tournaments/announcements/update", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.UpdateAnnouncement)))
 	mux.Handle("DELETE /tournaments/announcements/delete", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.DeleteAnnouncement)))
+	mux.Handle("GET /tournaments/announcements/seen_status", manager.With(middleware.AuthMiddleware(""))(http.HandlerFunc(h.GetParticipantsAnnouncementSeenStatus)))
 }

@@ -74,7 +74,7 @@ func (s *service) GetAnnouncementByID(ctx context.Context, tournamentID int, ann
 			return nil, errors.New("only tournament owner and participants can view announcements")
 		}
 	}
-	return s.tournamentRepo.GetAnnouncementByID(ctx, tournamentID, announcementID)
+	return s.tournamentRepo.GetAnnouncementByID(ctx, tournamentID, announcementID, userID)
 }
 
 func (s *service) UpdateAnnouncement(ctx context.Context, tournamentID int, announcementID int, userID int, req domain.AnnouncementCreateRequest) (*domain.Announcement, error) {
@@ -109,4 +109,16 @@ func (s *service) DeleteAnnouncement(ctx context.Context, tournamentID int, anno
 		return errors.New("only tournament owner can delete announcements")
 	}
 	return s.tournamentRepo.DeleteAnnouncement(ctx, tournamentID, announcementID)
+}
+
+func (s *service) GetParticipantsAnnouncementSeenStatus(ctx context.Context, tournamentID int, announcementID int, userID int) (*[]domain.Participant, error) {
+	// Verify if the user is the tournament owner
+	isOwner, err := s.tournamentRepo.VerifyTournamentOwner(ctx, tournamentID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if !isOwner {
+		return nil, errors.New("only tournament owner can view participants seen status")
+	}
+	return s.tournamentRepo.GetParticipantsAnnouncementSeenStatus(ctx, tournamentID, announcementID, userID)
 }

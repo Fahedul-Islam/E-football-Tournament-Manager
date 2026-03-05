@@ -56,3 +56,4 @@ func (s *service) MatchSchedule(ctx context.Context, tournamentID int, user_id i
 	}
 	return s.participantRepo.GetMatchSchedule(ctx, tournamentID)
 }
+
