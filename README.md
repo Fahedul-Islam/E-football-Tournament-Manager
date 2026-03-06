@@ -1,6 +1,6 @@
 # ⚽ E-Football Tournament Manager
 
-A robust, production-ready **RESTful API** backend for managing e-football (or any sports) tournaments, built with **Go** following **Clean Architecture** principles. This system handles everything from user registration to knockout stage generation.
+A robust, production-ready **RESTful API** backend for managing e-football (or any sports) tournaments, built with **Go** following **Clean Architecture** principles. This system handles everything from user registration to knockout stage generation, with a full-featured announcement and social interaction system.
 
 ![Go Version](https://img.shields.io/badge/Go-1.24-00ADD8?logo=go&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
@@ -14,7 +14,8 @@ A robust, production-ready **RESTful API** backend for managing e-football (or a
 - **Clean Architecture** - Separation of concerns with Domain, Repository, Service, and Handler layers
 - **Role-Based Access Control** - JWT authentication with admin/player roles
 - **Automated Tournament Logic** - Group generation, match scheduling, and knockout progression
-- **Database Migrations** - Version-controlled schema with golang-migrate
+- **Announcement System** - Full-featured announcements with comments, reactions, and threaded replies
+- **Database Migrations** - Version-controlled schema with golang-migrate (12 migrations)
 - **Production-Ready** - Middleware for logging, CORS, and authentication
 
 ---
@@ -33,17 +34,17 @@ A robust, production-ready **RESTful API** backend for managing e-football (or a
 ├─────────────────────────────────────────────────────────────┤
 │                    Service Layer                            │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │   UserService │ TournamentService │ ParticipantSvc  │   │
+│  │ UserSvc │ TournamentSvc │ ParticipantSvc │ AnnounceSvc│  │
 │  └─────────────────────────────────────────────────────┘   │
 ├─────────────────────────────────────────────────────────────┤
 │                   Repository Layer                          │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │     UserRepo  │  TournamentRepo  │  ParticipantRepo │   │
+│  │ UserRepo │ TournamentRepo │ ParticipantRepo │ AnnRepo│   │
 │  └─────────────────────────────────────────────────────┘   │
 ├─────────────────────────────────────────────────────────────┤
 │                    Domain Layer                             │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  User │ Tournament │ Participant │ Match │ Group    │   │
+│  │ User │ Tournament │ Participant │ Match │ Announce  │   │
 │  └─────────────────────────────────────────────────────┘   │
 ├─────────────────────────────────────────────────────────────┤
 │                  Infrastructure                             │
@@ -109,9 +110,22 @@ A robust, production-ready **RESTful API** backend for managing e-football (or a
   - Final
 - Winner determination and advancement
 
+### 📢 Announcement System
+
+- **Create Announcements** - Admins can post tournament announcements
+- **Announcement Types** - general, update, reminder, result, urgent, other
+- **Pinned Announcements** - Important announcements can be pinned
+- **Commentable Toggle** - Enable/disable comments per announcement
+- **Reactions** - Like/dislike on announcements and comments
+- **Threaded Comments** - Nested reply support with parent comments
+- **Edit/Delete Comments** - Users can manage their own comments
+- **Seen Status Tracking** - Track which participants have seen announcements
+
 ---
 
 ## 🗄️ Database Schema
+
+### Core Tables
 
 ```sql
 ┌──────────────┐     ┌─────────────────┐     ┌──────────────────┐
@@ -144,6 +158,59 @@ A robust, production-ready **RESTful API** backend for managing e-football (or a
               └──────────────┘
 ```
 
+### Announcement Tables
+
+```sql
+┌─────────────────┐     ┌────────────────────────┐     ┌─────────────────────┐
+│  Announcements  │     │  Announcement Comments │     │  Announcement Seen  │
+├─────────────────┤     ├────────────────────────┤     ├─────────────────────┤
+│ id              │     │ id                     │     │ id                  │
+│ tournament_id   │<────│ announcement_id (FK)   │     │ announcement_id(FK) │
+│ author_id (FK)  │     │ user_id (FK)           │     │ user_id (FK)        │
+│ title           │     │ parent_comment_id (FK) │     │ is_seen             │
+│ content         │     │ content                │     │ seen_at             │
+│ announcement_   │     │ is_edited              │     └─────────────────────┘
+│   type          │     │ likes_count            │
+│ is_pinned       │     │ dislikes_count         │
+│ is_commentable  │     │ created_at             │
+│ likes_count     │     │ updated_at             │
+│ dislikes_count  │     └────────────────────────┘
+│ comments_count  │              │
+│ created_at      │              │
+│ updated_at      │              ▼
+└─────────────────┘     ┌────────────────────────────┐
+        │               │ Announcement Comment       │
+        │               │      Reactions             │
+        ▼               ├────────────────────────────┤
+┌───────────────────┐   │ id                         │
+│ Announcement      │   │ comment_id (FK)            │
+│   Reactions       │   │ user_id (FK)               │
+├───────────────────┤   │ reaction_type (like/       │
+│ id                │   │   dislike)                 │
+│ announcement_id   │   │ created_at                 │
+│ user_id (FK)      │   └────────────────────────────┘
+│ reaction_type     │
+│ created_at        │
+└───────────────────┘
+```
+
+### All Database Tables (12 Migrations)
+
+| Table                            | Description                             |
+| -------------------------------- | --------------------------------------- |
+| `users`                          | User accounts with roles (admin/player) |
+| `tournaments`                    | Tournament definitions and settings     |
+| `participants`                   | Player registrations for tournaments    |
+| `groups`                         | Group stage groupings (A, B, C, etc.)   |
+| `group_teams`                    | Many-to-many: participants in groups    |
+| `matches`                        | Match records with scores and results   |
+| `player_stats`                   | Aggregated player statistics            |
+| `announcements`                  | Tournament announcements                |
+| `announcement_reactions`         | Likes/dislikes on announcements         |
+| `announcement_comments`          | Comments with threaded replies          |
+| `announcement_comment_reactions` | Likes/dislikes on comments              |
+| `announcement_seen`              | Read receipts for announcements         |
+
 ---
 
 ## 🛠️ Tech Stack
@@ -173,14 +240,15 @@ backend/
 │   └── db/
 │       ├── connections.go       # Database connection
 │       ├── migrate.go           # Migration runner
-│       └── migrations/          # SQL migration files (11 migrations)
+│       └── migrations/          # SQL migration files (12 migrations)
 ├── internal/
 │   ├── delivery/
 │   │   └── http/
 │   │       ├── handler/         # HTTP handlers (controllers)
 │   │       │   ├── user/
 │   │       │   ├── participant/
-│   │       │   └── tournamentManager/
+│   │       │   ├── tournament/
+│   │       │   └── announcement/
 │   │       └── middleware/      # Auth, CORS, Logger middlewares
 │   ├── domain/                  # Business entities & DTOs
 │   │   ├── user.go
@@ -188,15 +256,18 @@ backend/
 │   │   ├── participant.go
 │   │   ├── match.go
 │   │   ├── group.go
-│   │   └── player_stat.go
+│   │   ├── player_stat.go
+│   │   └── announcement.go
 │   ├── repository/              # Data access layer
-│   │   ├── user-repo/
+│   │   ├── user/
 │   │   ├── participant_repo/
-│   │   └── tournament_manager_repo/
+│   │   ├── tournament_manager_repo/
+│   │   └── announcement/
 │   └── service/                 # Business logic layer
 │       ├── user/
 │       ├── participant/
-│       └── tournament/
+│       ├── tournament/
+│       └── announcement/
 ├── utils/                       # Helper functions
 ├── docker-compose.yml
 ├── go.mod
@@ -296,6 +367,39 @@ backend/
 | ------ | --------------------------------------------------- | ---------------------- | ------ |
 | `GET`  | `/tournament/group-distribution?tournament_id={id}` | View group assignments | Player |
 | `GET`  | `/tournament/match-schedule?tournament_id={id}`     | View match schedule    | Player |
+
+### Announcement Management (Admin)
+
+| Method   | Endpoint                                                                         | Description         | Auth  |
+| -------- | -------------------------------------------------------------------------------- | ------------------- | ----- |
+| `POST`   | `/tournaments/announcements?tournament_id={id}`                                  | Create announcement | Admin |
+| `PUT`    | `/tournaments/announcements/update?tournament_id={id}&announcement_id={id}`      | Update announcement | Admin |
+| `DELETE` | `/tournaments/announcements/delete?tournament_id={id}&announcement_id={id}`      | Delete announcement | Admin |
+| `GET`    | `/tournaments/announcements/seen_status?tournament_id={id}&announcement_id={id}` | Get seen status     | Admin |
+
+### Announcement Viewing (All Authenticated Users)
+
+| Method | Endpoint                                                                 | Description             | Auth |
+| ------ | ------------------------------------------------------------------------ | ----------------------- | ---- |
+| `GET`  | `/tournaments/announcements?tournament_id={id}`                          | Get all announcements   | Any  |
+| `GET`  | `/tournaments/announcements/get?tournament_id={id}&announcement_id={id}` | Get single announcement | Any  |
+
+### Announcement Reactions (Player)
+
+| Method | Endpoint                                                                                          | Description           | Auth   |
+| ------ | ------------------------------------------------------------------------------------------------- | --------------------- | ------ |
+| `POST` | `/tournament/announcement/react?tournament_id={id}&announcement_id={id}&reaction={like\|dislike}` | React to announcement | Player |
+
+### Announcement Comments (All Authenticated Users)
+
+| Method   | Endpoint                                                                                                | Description      | Auth |
+| -------- | ------------------------------------------------------------------------------------------------------- | ---------------- | ---- |
+| `POST`   | `/tournaments/announcements/comments?tournament_id={id}&announcement_id={id}`                           | Create comment   | Any  |
+| `GET`    | `/tournaments/announcements/comments?tournament_id={id}&announcement_id={id}`                           | Get comments     | Any  |
+| `GET`    | `/tournaments/announcements/comments?tournament_id={id}&announcement_id={id}&parent_comment_id={id}`    | Get replies      | Any  |
+| `PUT`    | `/tournaments/announcements/comments/edit?tournament_id={id}&comment_id={id}`                           | Edit comment     | Any  |
+| `DELETE` | `/tournaments/announcements/comments/delete?tournament_id={id}&comment_id={id}`                         | Delete comment   | Any  |
+| `POST`   | `/tournaments/announcements/comments/react?tournament_id={id}&comment_id={id}&reaction={like\|dislike}` | React to comment | Any  |
 
 ---
 
@@ -400,6 +504,90 @@ curl -X GET "http://localhost:8080/tournament/match-schedule?tournament_id=1" \
   -H "Authorization: Bearer <player_token>"
 ```
 
+### Create Announcement (Admin)
+
+```bash
+curl -X POST "http://localhost:8080/tournaments/announcements?tournament_id=1" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <admin_token>" \
+  -d '{
+    "title": "Tournament Schedule Update",
+    "content": "The semifinal matches have been rescheduled to March 15th.",
+    "announcement_type": "update",
+    "is_pinned": true,
+    "is_commentable": true
+  }'
+```
+
+### Get All Announcements
+
+```bash
+curl -X GET "http://localhost:8080/tournaments/announcements?tournament_id=1" \
+  -H "Authorization: Bearer <token>"
+```
+
+### React to Announcement (Player)
+
+```bash
+curl -X POST "http://localhost:8080/tournament/announcement/react?tournament_id=1&announcement_id=1&reaction=like" \
+  -H "Authorization: Bearer <player_token>"
+```
+
+### Comment on Announcement
+
+```bash
+curl -X POST "http://localhost:8080/tournaments/announcements/comments?tournament_id=1&announcement_id=1" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "content": "Great update! Looking forward to the matches."
+  }'
+```
+
+### Reply to a Comment
+
+```bash
+curl -X POST "http://localhost:8080/tournaments/announcements/comments?tournament_id=1&announcement_id=1" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "content": "I agree with this comment!",
+    "parent_comment_id": 5
+  }'
+```
+
+### Get Comments on Announcement
+
+```bash
+curl -X GET "http://localhost:8080/tournaments/announcements/comments?tournament_id=1&announcement_id=1" \
+  -H "Authorization: Bearer <token>"
+```
+
+### React to Comment
+
+```bash
+curl -X POST "http://localhost:8080/tournaments/announcements/comments/react?tournament_id=1&comment_id=5&reaction=like" \
+  -H "Authorization: Bearer <token>"
+```
+
+### Edit Comment
+
+```bash
+curl -X PUT "http://localhost:8080/tournaments/announcements/comments/edit?tournament_id=1&comment_id=5" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "content": "Updated comment text here"
+  }'
+```
+
+### Delete Comment
+
+```bash
+curl -X DELETE "http://localhost:8080/tournaments/announcements/comments/delete?tournament_id=1&comment_id=5" \
+  -H "Authorization: Bearer <token>"
+```
+
 ---
 
 ## 🔧 Development
@@ -425,6 +613,7 @@ migrate -path infra/db/migrations -database "postgres://user:pass@localhost:5434
 
 ## 🗺️ Roadmap
 
+- [x] Announcement system with comments and reactions
 - [ ] WebSocket support for live match updates
 - [ ] Tournament bracket visualization API
 - [ ] Email notifications for match schedules
