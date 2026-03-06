@@ -15,12 +15,23 @@ type AnnouncementRepository interface {
 	DeleteAnnouncement(ctx context.Context, tournamentID int, announcementID int) error
 	GetParticipantsAnnouncementSeenStatus(ctx context.Context, tournamentID int, announcementID int, userID int) (*[]domain.Participant, error)
 
-	// Reaction operations
+	// Reaction On Announcement operations
 	ReactOnAnnouncement(ctx context.Context, tournamentID int, announcementID int, userID int, reaction string) (*domain.Announcement, error)
-	GetAnnouncementPrevReaction(ctx context.Context, tournamentID int, announcementID int, userID int) (string, error)
 	RemoveAnnouncementReaction(ctx context.Context, tournamentID int, announcementID int, userID int, reaction string) (*domain.Announcement, error)
+
+	// Announcement Comment operations
+	AddComment(ctx context.Context, announcementID int, userID int, parentCommentID *int, content *string) (*domain.AnnouncementComment, error)
+	GetComments(ctx context.Context, announcementID int, parentCommentID *int) ([]*domain.AnnouncementComment, error)
+	DeleteComment(ctx context.Context, commentID int) error
+	EditComment(ctx context.Context, commentID int, content string) (*domain.AnnouncementComment, error)
+	ReactToComment(ctx context.Context, commentID int, userID int, reactionType string) (*domain.AnnouncementComment, error)
+	RemoveReactionFromComment(ctx context.Context, commentID int, userID int) (*domain.AnnouncementComment, error)
 
 	// Helper operations
 	VerifyTournamentOwner(ctx context.Context, tournamentID int, userID int) (bool, error)
 	GetAllParticipant(ctx context.Context, tournamentID int) ([]*domain.Participant, error)
+	VerifyCommentOwner(ctx context.Context, commentID int, userID int) (bool, error)
+	VerifyCommentBelongsToTournament(ctx context.Context, tournamentID int, commentID int) (bool, error)
+	GetCommentPrevReaction(ctx context.Context, tournamentID int, commentID int, userID int) (string, error)
+	GetAnnouncementPrevReaction(ctx context.Context, tournamentID int, announcementID int, userID int) (string, error)
 }

@@ -63,3 +63,7 @@ type AnnouncementCreateRequest struct {
 	IsCommentable    bool   `json:"is_commentable"`
 }
 
+type CommentCreateRequest struct {
+	Content         string `json:"content" validate:"required"`
+	ParentCommentID *int   `json:"parent_comment_id,omitempty"`
+}

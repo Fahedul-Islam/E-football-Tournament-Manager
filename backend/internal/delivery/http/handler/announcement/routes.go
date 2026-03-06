@@ -18,4 +18,11 @@ func (h *AnnouncementHandler) RegisterRoutes(mux *http.ServeMux, manager *middle
 
 	// Participant routes for reactions
 	mux.Handle("POST /tournament/announcement/react", manager.With(middleware.AuthMiddleware("player"))(http.HandlerFunc(h.ReactOnAnnouncement)))
+
+	// Routes for announcement comments
+	mux.Handle("POST /tournaments/announcements/comments", manager.With(middleware.AuthMiddleware(""))(http.HandlerFunc(h.CommentOnAnnouncement)))
+	mux.Handle("GET /tournaments/announcements/comments", manager.With(middleware.AuthMiddleware(""))(http.HandlerFunc(h.GetComments)))
+	mux.Handle("DELETE /tournaments/announcements/comments/delete", manager.With(middleware.AuthMiddleware(""))(http.HandlerFunc(h.DeleteComment)))
+	mux.Handle("PUT /tournaments/announcements/comments/edit", manager.With(middleware.AuthMiddleware(""))(http.HandlerFunc(h.EditComment)))
+	mux.Handle("POST /tournaments/announcements/comments/react", manager.With(middleware.AuthMiddleware(""))(http.HandlerFunc(h.ReactToComment)))
 }
