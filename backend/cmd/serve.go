@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"tournament-manager/config"
 	"tournament-manager/infra/db"
+	infraws "tournament-manager/infra/ws"
 	"tournament-manager/internal/delivery/http/handler/announcement"
 	"tournament-manager/internal/delivery/http/handler/participant"
 	"tournament-manager/internal/delivery/http/handler/tournament"
 	"tournament-manager/internal/delivery/http/handler/user"
+	ws "tournament-manager/internal/delivery/http/handler/ws"
 	"tournament-manager/internal/delivery/http/middleware"
 	announcementrepo "tournament-manager/internal/repository/announcement"
 	participantrepo "tournament-manager/internal/repository/participant_repo"
@@ -41,6 +43,10 @@ func Serve() {
 		fmt.Println("Database migration error:", err)
 		return
 	}
+
+	hub := infraws.NewHub()
+	go hub.Run()
+
 	mux := http.NewServeMux()
 
 	middlewareManager := middleware.NewMiddlewareManager()
@@ -56,7 +62,7 @@ func Serve() {
 	userSvc := userservice.NewUserService(cfg, userRepo)
 	tournamentSvc := tournamentservice.NewTournamentService(tournamentRepo)
 	participantSvc := participantservice.NewParticipantService(participantRepo)
-	announcementSvc := announcementservice.NewAnnouncementService(announcementRepo)
+	announcementSvc := announcementservice.NewAnnouncementService(announcementRepo,hub)
 
 	// Initialize handlers with services
 	userHandler := user.NewUserHandler(userSvc)
@@ -70,6 +76,10 @@ func Serve() {
 
 	announcementHandler := announcement.NewAnnouncementHandler(announcementSvc)
 	announcementHandler.RegisterRoutes(mux, middlewareManager)
+
+	// WebSocket handler
+	wsHandler := ws.WebSocketHandler{Hub: hub}
+	wsHandler.RegisterRoutes(mux, middlewareManager)
 
 	wrappedMux := middlewareManager.WrappedMux(mux)
 

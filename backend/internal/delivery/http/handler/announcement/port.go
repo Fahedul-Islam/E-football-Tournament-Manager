@@ -21,6 +21,11 @@ type Service interface {
 	DeleteComment(ctx context.Context, tournamentID int, userID int, commentID int) error
 	EditComment(ctx context.Context, tournamentID int, userID int, commentID int, req domain.CommentCreateRequest) (*domain.AnnouncementComment, error)
 	ReactToComment(ctx context.Context, tournamentID int, commentID int, userID int, reaction string) (*domain.AnnouncementComment, error)
+
+	//notification operations
+	GetNotifications(ctx context.Context, userID int, page int) ([]*domain.Notification, error)
+	MarkNotificationAsRead(ctx context.Context, notificationID int, userID int) error
+	MarkAllNotificationsAsRead(ctx context.Context, userID int) error
 }
 
 type AnnouncementHandler struct {

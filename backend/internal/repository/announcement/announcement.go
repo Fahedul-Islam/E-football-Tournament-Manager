@@ -126,3 +126,51 @@ func (r *announcementRepo) GetParticipantsAnnouncementSeenStatus(ctx context.Con
 	}
 	return &participants, nil
 }
+
+func (r *announcementRepo) AddAnnouncementNotification(ctx context.Context, announcementID int, message string, participants []*domain.Participant) error {
+	// Insert notification for each participant
+	for _, p := range participants {
+		_, err := r.db.ExecContext(ctx, "INSERT INTO notifications (user_id, notification_type, reference_id, message, is_read, created_at) VALUES ($1, $2, $3, $4, false, NOW())", p.UserID, "announcement", announcementID, message)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *announcementRepo) GetNotifications(ctx context.Context, userID int, page int) ([]*domain.Notification, error) {
+	offset := (page - 1) * 20
+	query := `SELECT id, user_id, notification_type, reference_id, message, is_read, created_at 
+			FROM notifications 
+			WHERE user_id = $1 
+			ORDER BY created_at DESC 
+			LIMIT 20 OFFSET $2`
+	rows, err := r.db.QueryContext(ctx, query, userID, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notifications []*domain.Notification
+	for rows.Next() {
+		var n domain.Notification
+		if err := rows.Scan(&n.ID, &n.UserID, &n.NotificationType, &n.ReferenceID, &n.Message, &n.IsRead, &n.CreatedAt); err != nil {
+			return nil, err
+		}
+		notifications = append(notifications, &n)
+	}
+	return notifications, nil
+}
+
+func (r *announcementRepo) MarkNotificationAsRead(ctx context.Context, notificationID int, userID int) error {
+	query := `UPDATE notifications SET is_read = true WHERE id = $1 AND user_id = $2`
+	_, err := r.db.ExecContext(ctx, query, notificationID, userID)
+	return err
+}
+
+func (r *announcementRepo) MarkAllNotificationsAsRead(ctx context.Context, userID int) error {
+	query := `UPDATE notifications SET is_read = true WHERE user_id = $1 and is_read = false`
+	_, err := r.db.ExecContext(ctx, query, userID)
+	return err
+}
+

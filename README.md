@@ -1,9 +1,10 @@
 # ⚽ E-Football Tournament Manager
 
-A robust, production-ready **RESTful API** backend for managing e-football (or any sports) tournaments, built with **Go** following **Clean Architecture** principles. This system handles everything from user registration to knockout stage generation, with a full-featured announcement and social interaction system.
+A comprehensive, production-ready **RESTful API** backend for managing e-football (and esports) tournaments. Built with **Go** following **Clean Architecture** principles, this platform delivers enterprise-grade tournament management capabilities—from user registration and participant coordination to automated match scheduling, real-time notifications via **WebSocket**, and a full-featured announcement system with social interactions.
 
 ![Go Version](https://img.shields.io/badge/Go-1.24-00ADD8?logo=go&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![WebSocket](https://img.shields.io/badge/WebSocket-Gorilla-00ADD8?logo=websocket&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Architecture](https://img.shields.io/badge/Architecture-Clean-blueviolet)
 
@@ -11,47 +12,49 @@ A robust, production-ready **RESTful API** backend for managing e-football (or a
 
 ## 🎯 Project Highlights
 
-- **Clean Architecture** - Separation of concerns with Domain, Repository, Service, and Handler layers
-- **Role-Based Access Control** - JWT authentication with admin/player roles
-- **Automated Tournament Logic** - Group generation, match scheduling, and knockout progression
-- **Announcement System** - Full-featured announcements with comments, reactions, and threaded replies
-- **Database Migrations** - Version-controlled schema with golang-migrate (12 migrations)
-- **Production-Ready** - Middleware for logging, CORS, and authentication
+- **Clean Architecture** — Strict separation of concerns across Domain, Repository, Service, and Handler layers
+- **Role-Based Access Control** — JWT authentication with granular admin/player permissions
+- **Real-Time Notifications** — WebSocket integration for instant push notifications to connected clients
+- **Automated Tournament Logic** — Intelligent group generation, round-robin scheduling, and knockout progression
+- **Announcement System** — Full-featured announcements with comments, reactions, threaded replies, and read tracking
+- **Notification Center** — Persistent notification storage with read/unread status management
+- **Database Migrations** — Version-controlled schema evolution with golang-migrate (13 migrations)
+- **Production-Ready** — Enterprise middleware stack for logging, CORS, and authentication
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      HTTP Layer                             │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │           Middleware (Auth, CORS, Logger)            │   │
-│  └──────────────────────────────────────────────────────┘   │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │                   Handlers                           │   │
-│  └──────────────────────────────────────────────────────┘   │
-├─────────────────────────────────────────────────────────────┤
-│                    Service Layer                            │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │ UserSvc │ TournamentSvc │ ParticipantSvc │ AnnounceSvc│  │
-│  └───────────────────────────────────────────────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│                   Repository Layer                          │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │ UserRepo │ TournamentRepo │ ParticipantRepo │ AnnRepo│   │
-│  └──────────────────────────────────────────────────────┘   │
-├─────────────────────────────────────────────────────────────┤
-│                    Domain Layer                             │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │ User │ Tournament │ Participant │ Match │ Announce  │    │
-│  └─────────────────────────────────────────────────────┘    │
-├─────────────────────────────────────────────────────────────┤
-│                  Infrastructure                             │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │         PostgreSQL │ Migrations │ Config            │    │
-│  └─────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                      HTTP Layer                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │           Middleware (Auth, CORS, Logger)                 │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │              Handlers (REST + WebSocket)                  │  │
+│  └───────────────────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────────────────┤
+│                    Service Layer                                │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ UserSvc │ TournamentSvc │ ParticipantSvc │ AnnouncementSvc│  │
+│  └───────────────────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────────────────┤
+│                   Repository Layer                              │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │  UserRepo │ TournamentRepo │ ParticipantRepo │ AnnRepo    │  │
+│  └───────────────────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────────────────┤
+│                    Domain Layer                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ User │ Tournament │ Participant │ Match │ Notification    │  │
+│  └───────────────────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────────────────┤
+│                  Infrastructure                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │     PostgreSQL │ Migrations │ WebSocket Hub │ Config      │  │
+│  └───────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -64,6 +67,7 @@ A robust, production-ready **RESTful API** backend for managing e-football (or a
 - JWT-based authentication with access & refresh tokens
 - Role-based access control (Admin/Player)
 - Protected routes with middleware
+- WebSocket authentication support
 
 ### 🏆 Tournament Management
 
@@ -83,9 +87,9 @@ A robust, production-ready **RESTful API** backend for managing e-football (or a
 
 ### 📊 Match System
 
-- **Automated Group Generation** - Random distribution of participants
-- **Round-Robin Scheduling** - Every team plays each other in group stage
-- **Live Score Updates** - Real-time match score tracking
+- **Automated Group Generation** — Random distribution of participants into balanced groups
+- **Round-Robin Scheduling** — Every team plays each other within group stage
+- **Live Score Updates** — Real-time match score tracking
 - **Automatic Stats Calculation**:
   - Wins, Draws, Losses
   - Goals Scored/Conceded
@@ -112,14 +116,23 @@ A robust, production-ready **RESTful API** backend for managing e-football (or a
 
 ### 📢 Announcement System
 
-- **Create Announcements** - Admins can post tournament announcements
-- **Announcement Types** - general, update, reminder, result, urgent, other
-- **Pinned Announcements** - Important announcements can be pinned
-- **Commentable Toggle** - Enable/disable comments per announcement
-- **Reactions** - Like/dislike on announcements and comments
-- **Threaded Comments** - Nested reply support with parent comments
-- **Edit/Delete Comments** - Users can manage their own comments
-- **Seen Status Tracking** - Track which participants have seen announcements
+- **Create Announcements** — Admins can post tournament announcements
+- **Announcement Types** — general, update, reminder, result, urgent, other
+- **Pinned Announcements** — Important announcements can be pinned to top
+- **Commentable Toggle** — Enable/disable comments per announcement
+- **Reactions** — Like/dislike on announcements and comments
+- **Threaded Comments** — Nested reply support with parent comments
+- **Edit/Delete Comments** — Users can manage their own comments
+- **Seen Status Tracking** — Track which participants have seen announcements
+
+### 🔔 Real-Time Notifications
+
+- **WebSocket Integration** — Persistent bidirectional connection for instant updates
+- **Push Notifications** — Instant delivery when announcements are published
+- **Notification Center** — Persistent storage of all notifications per user
+- **Read Status Management** — Mark individual or all notifications as read
+- **Paginated History** — Fetch notification history with pagination support
+- **User-Targeted Delivery** — Notifications routed only to relevant tournament participants
 
 ---
 
@@ -194,7 +207,28 @@ A robust, production-ready **RESTful API** backend for managing e-football (or a
 └───────────────────┘
 ```
 
-### All Database Tables (12 Migrations)
+### Notification Tables
+
+```sql
+┌─────────────────────────────────────────────────────────────────┐
+│                     Notifications                               │
+├─────────────────────────────────────────────────────────────────┤
+│ id                    SERIAL PRIMARY KEY                        │
+│ user_id               INTEGER NOT NULL (FK → users)             │
+│ notification_type     VARCHAR(50) NOT NULL                      │
+│ reference_id          INTEGER NOT NULL                          │
+│ message               TEXT NOT NULL                             │
+│ is_read               BOOLEAN DEFAULT FALSE                     │
+│ created_at            TIMESTAMPTZ DEFAULT NOW()                 │
+├─────────────────────────────────────────────────────────────────┤
+│ Indexes:                                                        │
+│  • idx_notifications_user_id (user_id)                          │
+│  • idx_notifications_user_created (user_id, created_at DESC)    │
+│  • idx_notifications_unread (user_id) WHERE is_read = FALSE     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### All Database Tables (13 Migrations)
 
 | Table                            | Description                             |
 | -------------------------------- | --------------------------------------- |
@@ -210,6 +244,7 @@ A robust, production-ready **RESTful API** backend for managing e-football (or a
 | `announcement_comments`          | Comments with threaded replies          |
 | `announcement_comment_reactions` | Likes/dislikes on comments              |
 | `announcement_seen`              | Read receipts for announcements         |
+| `notifications`                  | User notifications with read status     |
 
 ---
 
@@ -219,6 +254,7 @@ A robust, production-ready **RESTful API** backend for managing e-football (or a
 | --------------------- | ------------------------------ |
 | **Language**          | Go 1.24                        |
 | **Database**          | PostgreSQL 16                  |
+| **Real-Time**         | WebSocket (gorilla/websocket)  |
 | **Authentication**    | JWT (golang-jwt/jwt/v4)        |
 | **Password Hashing**  | bcrypt (golang.org/x/crypto)   |
 | **Migrations**        | golang-migrate/migrate         |
@@ -237,10 +273,13 @@ backend/
 ├── config/
 │   └── config.go                # Environment configuration
 ├── infra/
-│   └── db/
-│       ├── connections.go       # Database connection
-│       ├── migrate.go           # Migration runner
-│       └── migrations/          # SQL migration files (12 migrations)
+│   ├── db/
+│   │   ├── connections.go       # Database connection
+│   │   ├── migrate.go           # Migration runner
+│   │   └── migrations/          # SQL migration files (13 migrations)
+│   └── ws/
+│       ├── ws_hub.go            # WebSocket hub (client registry & broadcast)
+│       └── client.go            # WebSocket client connection handler
 ├── internal/
 │   ├── delivery/
 │   │   └── http/
@@ -248,7 +287,8 @@ backend/
 │   │       │   ├── user/
 │   │       │   ├── participant/
 │   │       │   ├── tournament/
-│   │       │   └── announcement/
+│   │       │   ├── announcement/
+│   │       │   └── ws/          # WebSocket handler
 │   │       └── middleware/      # Auth, CORS, Logger middlewares
 │   ├── domain/                  # Business entities & DTOs
 │   │   ├── user.go
@@ -257,7 +297,8 @@ backend/
 │   │   ├── match.go
 │   │   ├── group.go
 │   │   ├── player_stat.go
-│   │   └── announcement.go
+│   │   ├── announcement.go
+│   │   └── notification.go
 │   ├── repository/              # Data access layer
 │   │   ├── user/
 │   │   ├── participant_repo/
@@ -400,6 +441,33 @@ backend/
 | `PUT`    | `/tournaments/announcements/comments/edit?tournament_id={id}&comment_id={id}`                           | Edit comment     | Any  |
 | `DELETE` | `/tournaments/announcements/comments/delete?tournament_id={id}&comment_id={id}`                         | Delete comment   | Any  |
 | `POST`   | `/tournaments/announcements/comments/react?tournament_id={id}&comment_id={id}&reaction={like\|dislike}` | React to comment | Any  |
+
+### Notifications (All Authenticated Users)
+
+| Method | Endpoint                                        | Description                      | Auth |
+| ------ | ----------------------------------------------- | -------------------------------- | ---- |
+| `GET`  | `/notifications?page={page}`                    | Get paginated notifications      | Any  |
+| `POST` | `/notifications/mark_read?notification_id={id}` | Mark single notification as read | Any  |
+| `POST` | `/notifications/mark_all_read`                  | Mark all notifications as read   | Any  |
+
+### WebSocket (Real-Time Notifications)
+
+| Protocol    | Endpoint | Description                       | Auth |
+| ----------- | -------- | --------------------------------- | ---- |
+| `WebSocket` | `/ws`    | Real-time notification connection | JWT  |
+
+**WebSocket Connection Example:**
+
+```javascript
+const ws = new WebSocket("ws://localhost:8080/ws", [], {
+  headers: { Authorization: "Bearer <token>" },
+});
+
+ws.onmessage = (event) => {
+  console.log("Notification:", event.data);
+  // Example: "New announcement: Tournament Schedule Update"
+};
+```
 
 ---
 
@@ -588,6 +656,59 @@ curl -X DELETE "http://localhost:8080/tournaments/announcements/comments/delete?
   -H "Authorization: Bearer <token>"
 ```
 
+### Get Notifications
+
+```bash
+curl -X GET "http://localhost:8080/notifications?page=1" \
+  -H "Authorization: Bearer <token>"
+```
+
+**Response:**
+
+```json
+[
+  {
+    "id": 1,
+    "user_id": 2,
+    "notification_type": "announcement",
+    "reference_id": 5,
+    "message": "New announcement: Tournament Schedule Update",
+    "is_read": false,
+    "created_at": "2026-03-08T17:16:22.431558Z"
+  }
+]
+```
+
+### Mark Notification as Read
+
+```bash
+curl -X POST "http://localhost:8080/notifications/mark_read?notification_id=1" \
+  -H "Authorization: Bearer <token>"
+```
+
+### Mark All Notifications as Read
+
+```bash
+curl -X POST "http://localhost:8080/notifications/mark_all_read" \
+  -H "Authorization: Bearer <token>"
+```
+
+### Connect to WebSocket for Real-Time Notifications
+
+```python
+import websocket
+
+def on_message(ws, message):
+    print(f"Notification: {message}")
+
+ws = websocket.WebSocketApp(
+    "ws://localhost:8080/ws",
+    header={"Authorization": "Bearer <token>"},
+    on_message=on_message
+)
+ws.run_forever()
+```
+
 ---
 
 ## 🔧 Development
@@ -614,7 +735,8 @@ migrate -path infra/db/migrations -database "postgres://user:pass@localhost:5434
 ## 🗺️ Roadmap
 
 - [x] Announcement system with comments and reactions
-- [ ] WebSocket support for live match updates
+- [x] WebSocket support for real-time notifications
+- [x] Notification center with read/unread status
 - [ ] Tournament bracket visualization API
 - [ ] Email notifications for match schedules
 - [ ] Player rankings across tournaments

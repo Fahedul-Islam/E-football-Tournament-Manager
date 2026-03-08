@@ -25,4 +25,9 @@ func (h *AnnouncementHandler) RegisterRoutes(mux *http.ServeMux, manager *middle
 	mux.Handle("DELETE /tournaments/announcements/comments/delete", manager.With(middleware.AuthMiddleware(""))(http.HandlerFunc(h.DeleteComment)))
 	mux.Handle("PUT /tournaments/announcements/comments/edit", manager.With(middleware.AuthMiddleware(""))(http.HandlerFunc(h.EditComment)))
 	mux.Handle("POST /tournaments/announcements/comments/react", manager.With(middleware.AuthMiddleware(""))(http.HandlerFunc(h.ReactToComment)))
+
+	// Routes for notifications
+	mux.Handle("GET /notifications", manager.With(middleware.AuthMiddleware(""))(http.HandlerFunc(h.Notifications)))
+	mux.Handle("POST /notifications/mark_read", manager.With(middleware.AuthMiddleware(""))(http.HandlerFunc(h.MarkNotificationAsRead)))
+	mux.Handle("POST /notifications/mark_all_read", manager.With(middleware.AuthMiddleware(""))(http.HandlerFunc(h.MarkAllNotificationsAsRead)))
 }

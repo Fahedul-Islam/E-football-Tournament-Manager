@@ -3,6 +3,8 @@ package announcement
 import (
 	"context"
 	"errors"
+	"fmt"
+	"tournament-manager/infra/ws"
 	"tournament-manager/internal/domain"
 )
 
@@ -24,7 +26,28 @@ func (s *service) CreateAnnouncement(ctx context.Context, tournamentID int, user
 		IsPinned:         req.IsPinned,
 		IsCommentable:    req.IsCommentable,
 	}
-	return s.announcementRepo.CreateAnnouncement(ctx, announcement)
+	announcement, err = s.announcementRepo.CreateAnnouncement(ctx, announcement)
+	if err != nil {
+		return nil, err
+	}
+	participants, err := s.announcementRepo.GetAllParticipant(ctx, tournamentID)
+	if err != nil {
+		return nil, err
+	}
+	announcement_messsege := fmt.Sprintf("New announcement: %s", announcement.Title)
+	// add notification for each participant
+	notification_added := s.announcementRepo.AddAnnouncementNotification(ctx, announcement.ID, announcement_messsege, participants)
+	if notification_added != nil {
+		return nil, notification_added
+	}
+	// send websocket notification to participants
+	for _, p := range participants {
+		s.hub.Broadcast <- ws.Notification{
+			UserID:  p.UserID,
+			Message: []byte(announcement_messsege),
+		}
+	}
+	return announcement, nil
 }
 
 func (s *service) GetAnnouncements(ctx context.Context, tournamentID int, userID int) ([]*domain.Announcement, error) {
