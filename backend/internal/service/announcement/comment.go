@@ -3,6 +3,7 @@ package announcement
 import (
 	"context"
 	"errors"
+	"tournament-manager/infra/ws"
 	"tournament-manager/internal/domain"
 )
 
@@ -27,7 +28,33 @@ func (s *service) CreateComment(ctx context.Context, tournamentID int, announcem
 			return nil, errors.New("user is not a participant of the tournament")
 		}
 	}
-	return s.announcementRepo.AddComment(ctx, announcementID, userID, req.ParentCommentID, &req.Content)
+	if len(req.Content) == 0 {
+		return nil, errors.New("comment content cannot be empty")
+	}
+	comment, err := s.announcementRepo.AddComment(ctx, announcementID, userID, req.ParentCommentID, &req.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.ParentCommentID != nil {
+		parentCommentUserID, err := s.announcementRepo.GetParentCommentUserID(ctx, req.ParentCommentID)
+		if err != nil {
+			return nil, err
+		}
+		if parentCommentUserID != userID {
+			err = s.announcementRepo.AddCommentNotification(ctx, parentCommentUserID, "comment_reply", comment.ID, "You have a new reply to your comment")
+			if err != nil {
+				return nil, err
+			}
+			// send notification to parrent comment owner in websocket
+			s.hub.Broadcast <- ws.Notification{
+				UserID:  parentCommentUserID,
+				Message: []byte("You have a new reply to your comment"),
+			}
+		}
+	}
+
+	return comment, nil
 }
 
 func (s *service) GetComments(ctx context.Context, tournamentID int, announcementID int, parentCommentID *int, userID int) ([]*domain.AnnouncementComment, error) {

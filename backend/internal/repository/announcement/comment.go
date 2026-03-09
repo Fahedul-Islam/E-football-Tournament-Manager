@@ -124,3 +124,18 @@ func (r *announcementRepo) EditComment(ctx context.Context, commentID int, conte
 	return &c, nil
 }
 
+
+func (r *announcementRepo) GetParentCommentUserID(ctx context.Context, parentCommentID *int) (int, error) {
+	var userID int
+	err := r.db.QueryRowContext(ctx, "SELECT user_id FROM announcement_comments WHERE id=$1", *parentCommentID).Scan(&userID)
+	if err != nil {
+		return 0, err
+	}
+	return userID, nil
+}
+
+func (r *announcementRepo) AddCommentNotification(ctx context.Context, userID int, notification_type string, commentID int, message string) error {
+	query := `INSERT INTO notifications (user_id, notification_type, reference_id, message) VALUES ($1, $2, $3, $4)`
+	_, err := r.db.ExecContext(ctx, query, userID, notification_type, commentID, message)
+	return err
+}

@@ -26,13 +26,14 @@ type AnnouncementRepository interface {
 	EditComment(ctx context.Context, commentID int, content string) (*domain.AnnouncementComment, error)
 	ReactToComment(ctx context.Context, commentID int, userID int, reactionType string) (*domain.AnnouncementComment, error)
 	RemoveReactionFromComment(ctx context.Context, commentID int, userID int) (*domain.AnnouncementComment, error)
-
+	GetParentCommentUserID(ctx context.Context, parentCommentID *int) (int, error)
 
 	//notification operations
-	AddAnnouncementNotification(ctx context.Context, announcementID int, message string,participants []*domain.Participant) error
+	AddAnnouncementNotification(ctx context.Context, announcementID int, message string, participants []*domain.Participant) error
 	GetNotifications(ctx context.Context, userID int, page int) ([]*domain.Notification, error)
 	MarkNotificationAsRead(ctx context.Context, notificationID int, userID int) error
 	MarkAllNotificationsAsRead(ctx context.Context, userID int) error
+	AddCommentNotification(ctx context.Context, userID int, notification_type string, commentID int, message string) error
 
 	// Helper operations
 	VerifyTournamentOwner(ctx context.Context, tournamentID int, userID int) (bool, error)
