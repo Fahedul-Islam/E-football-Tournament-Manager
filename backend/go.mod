@@ -1,6 +1,6 @@
 module tournament-manager
 
-go 1.24.6
+go 1.25.0
 
 require (
 	github.com/AfterShip/email-verifier v1.4.1
@@ -18,4 +18,5 @@ require (
 	github.com/hbollon/go-edlib v1.6.0 // indirect
 	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/time v0.15.0 // indirect
 )

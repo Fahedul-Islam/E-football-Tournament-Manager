@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"time"
 	"tournament-manager/internal/domain"
 )
 
@@ -47,7 +46,6 @@ func (r *tournamentManagerRepo) GenerateGroups(ctx context.Context, tournament_i
 		}
 		groupIDs[i] = groupID
 	}
-	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(approvedParticipants), func(i, j int) {
 		approvedParticipants[i], approvedParticipants[j] = approvedParticipants[j], approvedParticipants[i]
 	})

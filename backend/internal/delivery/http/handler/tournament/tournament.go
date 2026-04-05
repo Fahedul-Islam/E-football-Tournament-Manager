@@ -2,7 +2,6 @@ package tournament
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"tournament-manager/internal/domain"
@@ -11,8 +10,11 @@ import (
 
 func (h *TournamentManagerHandler) CreateTournament(w http.ResponseWriter, r *http.Request) {
 	var req domain.TournamentCreateRequest
-	// Extract the created_by field from the request context or token
-	userIDStr := r.Context().Value("user_id").(string)
+	userIDStr, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	createdBy, err := strconv.Atoi(userIDStr)
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
@@ -23,7 +25,6 @@ func (h *TournamentManagerHandler) CreateTournament(w http.ResponseWriter, r *ht
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println("CreateTournament request:", req)
 	if err := h.tournamentService.CreateTournament(r.Context(), createdBy, req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -31,9 +32,12 @@ func (h *TournamentManagerHandler) CreateTournament(w http.ResponseWriter, r *ht
 	utils.SendData(w, map[string]string{"message": "Tournament created successfully"}, http.StatusCreated)
 }
 
-
 func (h *TournamentManagerHandler) DeleteTournament(w http.ResponseWriter, r *http.Request) {
-	str_t_owner_id := r.Context().Value("user_id").(string)
+	str_t_owner_id, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	tournament_owner_id, err := strconv.Atoi(str_t_owner_id)
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
@@ -45,7 +49,7 @@ func (h *TournamentManagerHandler) DeleteTournament(w http.ResponseWriter, r *ht
 		http.Error(w, "Invalid tournament ID", http.StatusBadRequest)
 		return
 	}
-	if err := h.tournamentService.DeleteTournament(r.Context(), tournament_owner_id,tournament_id); err != nil {
+	if err := h.tournamentService.DeleteTournament(r.Context(), tournament_owner_id, tournament_id); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -72,7 +76,11 @@ func (h *TournamentManagerHandler) GetTournamentByID(w http.ResponseWriter, r *h
 }
 
 func (h *TournamentManagerHandler) AllTournaments(w http.ResponseWriter, r *http.Request) {
-	str_t_owner_id := r.Context().Value("user_id").(string)
+	str_t_owner_id, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	tournament_owner_id, err := strconv.Atoi(str_t_owner_id)
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
@@ -88,7 +96,11 @@ func (h *TournamentManagerHandler) AllTournaments(w http.ResponseWriter, r *http
 }
 
 func (h *TournamentManagerHandler) UpdateTournament(w http.ResponseWriter, r *http.Request) {
-	str_t_owner_id := r.Context().Value("user_id").(string)
+	str_t_owner_id, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	tournament_owner_id, err := strconv.Atoi(str_t_owner_id)
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
@@ -105,7 +117,7 @@ func (h *TournamentManagerHandler) UpdateTournament(w http.ResponseWriter, r *ht
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := h.tournamentService.UpdateTournament(r.Context(), tournament_owner_id,tournament_id, req); err != nil {
+	if err := h.tournamentService.UpdateTournament(r.Context(), tournament_owner_id, tournament_id, req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

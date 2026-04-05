@@ -34,7 +34,7 @@ func (r *tournamentManagerRepo) DeleteTournament(ctx context.Context, tournament
 }
 
 func (r *tournamentManagerRepo) GetAllTournaments(ctx context.Context, tournament_owner_id int) ([]*domain.Tournament, error) {
-	rows, err := r.db.QueryContext(ctx, "SELECT * FROM tournaments WHERE created_by = $1", tournament_owner_id)
+	rows, err := r.db.QueryContext(ctx, "SELECT id, name, description, tournament_type, max_players, created_by, start_date, end_date, created_at FROM tournaments WHERE created_by = $1", tournament_owner_id)
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +53,12 @@ func (r *tournamentManagerRepo) GetAllTournaments(ctx context.Context, tournamen
 
 func (r *tournamentManagerRepo) GetTournamentByID(ctx context.Context, id int) (*domain.Tournament, error) {
 	var tournament domain.Tournament
-	query := `SELECT * FROM tournaments WHERE id = $1`
-	if err := r.db.QueryRowContext(ctx, query, id).Scan(&tournament.ID, &tournament.Name, &tournament.Description, &tournament.StartDate, &tournament.EndDate, &tournament.CreatedBy); err != nil {
+	query := `SELECT id, name, description, tournament_type, max_players, created_by, start_date, end_date, created_at FROM tournaments WHERE id = $1`
+	if err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&tournament.ID, &tournament.Name, &tournament.Description,
+		&tournament.TournamentType, &tournament.MaxPlayers, &tournament.CreatedBy,
+		&tournament.StartDate, &tournament.EndDate, &tournament.CreatedAt,
+	); err != nil {
 		return nil, err
 	}
 	return &tournament, nil

@@ -1,9 +1,14 @@
 package cmd
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 	"tournament-manager/config"
 	"tournament-manager/infra/db"
 	infraws "tournament-manager/infra/ws"
@@ -52,6 +57,17 @@ func Serve() {
 	middlewareManager := middleware.NewMiddlewareManager()
 	middlewareManager.Use(middleware.Logger, middleware.CorsWithPreflight)
 
+	// Health check endpoint
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		if err := dB.PingContext(r.Context()); err != nil {
+			http.Error(w, `{"status":"error","db":"unreachable"}`, http.StatusServiceUnavailable)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, `{"status":"ok","db":"connected"}`)
+	})
+
 	// Initialize repositories
 	userRepo := userrepo.NewUserRepo(dB)
 	tournamentRepo := tournamentrepo.NewTournamentManagerRepo(dB)
@@ -62,7 +78,7 @@ func Serve() {
 	userSvc := userservice.NewUserService(cfg, userRepo)
 	tournamentSvc := tournamentservice.NewTournamentService(tournamentRepo)
 	participantSvc := participantservice.NewParticipantService(participantRepo)
-	announcementSvc := announcementservice.NewAnnouncementService(announcementRepo,hub)
+	announcementSvc := announcementservice.NewAnnouncementService(announcementRepo, hub)
 
 	// Initialize handlers with services
 	userHandler := user.NewUserHandler(userSvc)
@@ -83,8 +99,33 @@ func Serve() {
 
 	wrappedMux := middlewareManager.WrappedMux(mux)
 
-	fmt.Println("Starting server on :8080")
-	if err := http.ListenAndServe(":8080", wrappedMux); err != nil {
-		fmt.Println("Server error:", err)
+	addr := fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port)
+	server := &http.Server{
+		Addr:         addr,
+		Handler:      wrappedMux,
+		ReadTimeout:  cfg.Server.ReadTimeout,
+		WriteTimeout: cfg.Server.WriteTimeout,
 	}
+
+	// Start server in background goroutine
+	go func() {
+		fmt.Printf("Server starting on %s\n", addr)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			fmt.Println("Server error:", err)
+			os.Exit(1)
+		}
+	}()
+
+	// Wait for shutdown signal
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	fmt.Println("Shutting down server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		fmt.Println("Server forced to shutdown:", err)
+	}
+	fmt.Println("Server stopped")
 }

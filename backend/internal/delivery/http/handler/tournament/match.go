@@ -16,17 +16,18 @@ func (h *TournamentManagerHandler) CreateMatchSchedules(w http.ResponseWriter, r
 		http.Error(w, "Invalid tournament ID", http.StatusBadRequest)
 		return
 	}
-	// get tournament owner id to verify permission
-	str_t_owner_id := r.Context().Value("user_id").(string)
+	str_t_owner_id, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	tournament_owner_id, err := strconv.Atoi(str_t_owner_id)
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
 		return
 	}
-	// handling other tournament types
 	cnt := r.URL.Query().Get("group_count")
 	groupCount, err := strconv.Atoi(cnt)
-
 	if err != nil {
 		http.Error(w, "Invalid group count", http.StatusBadRequest)
 		return
@@ -36,14 +37,13 @@ func (h *TournamentManagerHandler) CreateMatchSchedules(w http.ResponseWriter, r
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	utils.SendData(w, map[string]string{"message": "Match schedules created successfully"}, http.StatusOK)
 }
 
 // LeagueStyleSchedule creates a league style schedule for a tournament
 func (h *TournamentManagerHandler) LeagueStyleSchedule(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("tournament_id")
 	tournament_id, err := strconv.Atoi(id)
-
 	if err != nil {
 		http.Error(w, "Invalid tournament ID", http.StatusBadRequest)
 		return
@@ -54,11 +54,16 @@ func (h *TournamentManagerHandler) LeagueStyleSchedule(w http.ResponseWriter, r 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	utils.SendData(w, map[string]string{"message": "League schedule created successfully"}, http.StatusOK)
 }
 
-// Update Score updates the score of a match and advances the tournament if necessary
+// UpdateScore updates the score of a match and advances the tournament if necessary
 func (h *TournamentManagerHandler) UpdateScore(w http.ResponseWriter, r *http.Request) {
-	str_t_owner_id := r.Context().Value("user_id").(string)
+	str_t_owner_id, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	tournament_owner_id, err := strconv.Atoi(str_t_owner_id)
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
@@ -80,7 +85,7 @@ func (h *TournamentManagerHandler) UpdateScore(w http.ResponseWriter, r *http.Re
 	utils.SendData(w, result, http.StatusOK)
 }
 
-// Get all the matches of a tournament
+// GetAllMatches returns all matches of a tournament
 func (h *TournamentManagerHandler) GetAllMatches(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("tournament_id")
 	tournament_id, err := strconv.Atoi(id)

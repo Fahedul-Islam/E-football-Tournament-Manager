@@ -36,13 +36,15 @@ func (s *service) Register(ctx context.Context, user domain.User) error {
 	if err := utils.IsEmailValid(user.Email); err != nil {
 		return err
 	}
-	hashedPassword, _ := utils.HashPassword(user.PasswordHash)
-	user.PasswordHash = hashedPassword
 	if err := utils.ValidatePassword(user.PasswordHash); err != nil {
 		return errors.New("Invalid Password Provided")
 	}
-	err := s.userRepo.Register(ctx, user)
-	return err
+	hashedPassword, err := utils.HashPassword(user.PasswordHash)
+	if err != nil {
+		return errors.New("Failed to process password")
+	}
+	user.PasswordHash = hashedPassword
+	return s.userRepo.Register(ctx, user)
 }
 
 // Authenticate authenticates a user with email, password and role

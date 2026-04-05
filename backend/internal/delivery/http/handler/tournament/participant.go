@@ -13,16 +13,22 @@ func (h *TournamentManagerHandler) GetAllParticipant(w http.ResponseWriter, r *h
 	tournament_id, err := strconv.Atoi(str_id)
 	if err != nil {
 		http.Error(w, "Invalid tournament id", http.StatusBadRequest)
+		return
 	}
 	participant, err := h.tournamentService.GetAllParticipant(r.Context(), tournament_id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	utils.SendData(w, participant, http.StatusOK)
 }
 
 func (h *TournamentManagerHandler) AddParticipant(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("user_id").(string)
+	id, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	tournament_owner_id, err := strconv.Atoi(id)
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
@@ -40,9 +46,12 @@ func (h *TournamentManagerHandler) AddParticipant(w http.ResponseWriter, r *http
 	utils.SendData(w, map[string]string{"message": "Participant added successfully"}, http.StatusOK)
 }
 
-
 func (h *TournamentManagerHandler) ApproveParticipant(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("user_id").(string)
+	id, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	tournament_owner_id, err := strconv.Atoi(id)
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
@@ -54,7 +63,7 @@ func (h *TournamentManagerHandler) ApproveParticipant(w http.ResponseWriter, r *
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := h.tournamentService.ApproveParticipant(r.Context(), tournament_owner_id,req); err != nil {
+	if err := h.tournamentService.ApproveParticipant(r.Context(), tournament_owner_id, req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -62,7 +71,11 @@ func (h *TournamentManagerHandler) ApproveParticipant(w http.ResponseWriter, r *
 }
 
 func (h *TournamentManagerHandler) RejectParticipant(w http.ResponseWriter, r *http.Request) {
-	str_t_owner_id := r.Context().Value("user_id").(string)
+	str_t_owner_id, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	tournament_owner_id, err := strconv.Atoi(str_t_owner_id)
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
@@ -73,16 +86,19 @@ func (h *TournamentManagerHandler) RejectParticipant(w http.ResponseWriter, r *h
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if err := h.tournamentService.RejectParticipant(r.Context(), tournament_owner_id,req); err != nil {
+	if err := h.tournamentService.RejectParticipant(r.Context(), tournament_owner_id, req); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	utils.SendData(w, map[string]string{"message": "Participant rejected successfully"}, http.StatusOK)
 }
 
-
 func (h *TournamentManagerHandler) RemoveParticipant(w http.ResponseWriter, r *http.Request) {
-	str_t_owner_id := r.Context().Value("user_id").(string)
+	str_t_owner_id, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	tournament_owner_id, err := strconv.Atoi(str_t_owner_id)
 	if err != nil {
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
