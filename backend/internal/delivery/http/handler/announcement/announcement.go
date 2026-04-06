@@ -4,9 +4,24 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"tournament-manager/internal/delivery/http/middleware"
 	"tournament-manager/internal/domain"
 	"tournament-manager/utils"
 )
+
+func userIDFromCtx(w http.ResponseWriter, r *http.Request) (int, bool) {
+	userIDStr, ok := r.Context().Value(middleware.ContextKeyUserID).(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return 0, false
+	}
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return 0, false
+	}
+	return userID, true
+}
 
 func (h *AnnouncementHandler) CreateAnnouncement(w http.ResponseWriter, r *http.Request) {
 	tournamentID, err := strconv.Atoi(r.URL.Query().Get("tournament_id"))
@@ -14,9 +29,8 @@ func (h *AnnouncementHandler) CreateAnnouncement(w http.ResponseWriter, r *http.
 		http.Error(w, "Invalid tournament_id", http.StatusBadRequest)
 		return
 	}
-	userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+	userID, ok := userIDFromCtx(w, r)
+	if !ok {
 		return
 	}
 	var req domain.AnnouncementCreateRequest
@@ -38,12 +52,10 @@ func (h *AnnouncementHandler) GetAnnouncements(w http.ResponseWriter, r *http.Re
 		http.Error(w, "Invalid tournament_id", http.StatusBadRequest)
 		return
 	}
-	userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+	userID, ok := userIDFromCtx(w, r)
+	if !ok {
 		return
 	}
-
 	announcements, err := h.announcementService.GetAnnouncements(r.Context(), tournamentID, userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -63,12 +75,10 @@ func (h *AnnouncementHandler) GetAnnouncementByID(w http.ResponseWriter, r *http
 		http.Error(w, "Invalid announcement_id", http.StatusBadRequest)
 		return
 	}
-	userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+	userID, ok := userIDFromCtx(w, r)
+	if !ok {
 		return
 	}
-
 	announcement, err := h.announcementService.GetAnnouncementByID(r.Context(), tournamentID, announcementID, userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -88,9 +98,8 @@ func (h *AnnouncementHandler) UpdateAnnouncement(w http.ResponseWriter, r *http.
 		http.Error(w, "Invalid announcement_id", http.StatusBadRequest)
 		return
 	}
-	userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+	userID, ok := userIDFromCtx(w, r)
+	if !ok {
 		return
 	}
 	var req domain.AnnouncementCreateRequest
@@ -117,13 +126,11 @@ func (h *AnnouncementHandler) DeleteAnnouncement(w http.ResponseWriter, r *http.
 		http.Error(w, "Invalid announcement_id", http.StatusBadRequest)
 		return
 	}
-	userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+	userID, ok := userIDFromCtx(w, r)
+	if !ok {
 		return
 	}
-	err = h.announcementService.DeleteAnnouncement(r.Context(), tournamentID, announcementID, userID)
-	if err != nil {
+	if err := h.announcementService.DeleteAnnouncement(r.Context(), tournamentID, announcementID, userID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -141,9 +148,8 @@ func (h *AnnouncementHandler) GetParticipantsAnnouncementSeenStatus(w http.Respo
 		http.Error(w, "Invalid announcement_id", http.StatusBadRequest)
 		return
 	}
-	userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+	userID, ok := userIDFromCtx(w, r)
+	if !ok {
 		return
 	}
 	status, err := h.announcementService.GetParticipantsAnnouncementSeenStatus(r.Context(), tournamentID, announcementID, userID)
@@ -165,9 +171,8 @@ func (h *AnnouncementHandler) ReactOnAnnouncement(w http.ResponseWriter, r *http
 		http.Error(w, "Invalid announcement_id", http.StatusBadRequest)
 		return
 	}
-	userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+	userID, ok := userIDFromCtx(w, r)
+	if !ok {
 		return
 	}
 	reaction := r.URL.Query().Get("reaction")

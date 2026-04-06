@@ -48,7 +48,7 @@ func (r *userRepo) GetAllUsers(ctx context.Context) ([]*domain.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var users []*domain.User
 	for rows.Next() {

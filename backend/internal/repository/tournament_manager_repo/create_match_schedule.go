@@ -18,7 +18,7 @@ func (r *tournamentManagerRepo) CreateMatchSchedules(ctx context.Context, tourna
 	if err != nil {
 		return fmt.Errorf("failed to fetch groups: %w", err)
 	}
-	defer groupRows.Close()
+	defer func() { _ = groupRows.Close() }()
 
 	var groupIDs []int
 	for groupRows.Next() {
@@ -44,17 +44,17 @@ func (r *tournamentManagerRepo) CreateMatchSchedules(ctx context.Context, tourna
 		for rows.Next() {
 			var pid int
 			if err := rows.Scan(&pid); err != nil {
-				rows.Close()
+				_ = rows.Close()
 				return fmt.Errorf("failed to scan participant ID for group %d: %w", groupID, err)
 			}
 			pids = append(pids, pid)
 		}
-		rows.Close()
+		_ = rows.Close()
 		participantsPerGroup[groupID] = pids
 	}
 
 	// 4️⃣ Begin transaction
-	tx, err := r.db.Begin()
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -68,7 +68,7 @@ func (r *tournamentManagerRepo) CreateMatchSchedules(ctx context.Context, tourna
 	if err != nil {
 		return fmt.Errorf("failed to prepare match insert: %w", err)
 	}
-	defer matchStmt.Close()
+	defer func() { _ = matchStmt.Close() }()
 
 	playerStatStmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO player_stats (tournament_id, group_id, participant_id)
@@ -78,18 +78,15 @@ func (r *tournamentManagerRepo) CreateMatchSchedules(ctx context.Context, tourna
 	if err != nil {
 		return fmt.Errorf("failed to prepare player_stats insert: %w", err)
 	}
-	defer playerStatStmt.Close()
+	defer func() { _ = playerStatStmt.Close() }()
 
 	// 6️⃣ Generate round-robin matches and insert player stats
 	for groupID, participants := range participantsPerGroup {
-		// Insert player stats for each participant
 		for _, pid := range participants {
 			if _, err := playerStatStmt.ExecContext(ctx, tournamentID, groupID, pid); err != nil {
 				return fmt.Errorf("failed to insert player stats for participant %d in group %d: %w", pid, groupID, err)
 			}
 		}
-
-		// Create round-robin matches
 		for i := 0; i < len(participants); i++ {
 			for j := i + 1; j < len(participants); j++ {
 				if _, err := matchStmt.ExecContext(ctx, tournamentID, groupID, "Group Stage", participants[i], participants[j]); err != nil {
@@ -114,9 +111,9 @@ func (r *tournamentManagerRepo) LeagueStyleSchedule(ctx context.Context, tournam
 	}
 	defer func() {
 		if err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 		} else {
-			tx.Commit()
+			_ = tx.Commit()
 		}
 	}()
 
@@ -131,7 +128,7 @@ func (r *tournamentManagerRepo) LeagueStyleSchedule(ctx context.Context, tournam
 	if err != nil {
 		return err
 	}
-	defer playerStatStmt.Close()
+	defer func() { _ = playerStatStmt.Close() }()
 
 	matchStmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO matches (tournament_id, group_id, round, participant_a_id, participant_b_id)
@@ -139,7 +136,7 @@ func (r *tournamentManagerRepo) LeagueStyleSchedule(ctx context.Context, tournam
 	if err != nil {
 		return fmt.Errorf("failed to prepare match insert: %w", err)
 	}
-	defer matchStmt.Close()
+	defer func() { _ = matchStmt.Close() }()
 
 	for i, participantA := range approvedParticipants {
 		if _, err := playerStatStmt.ExecContext(ctx, tournament_id, participantA.ID); err != nil {

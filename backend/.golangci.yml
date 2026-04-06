@@ -1,3 +1,5 @@
+version: "2"
+
 run:
   timeout: 5m
 
@@ -5,8 +7,7 @@ linters:
   enable:
     - errcheck
     - govet
-    - staticcheck
-    - gosimple
+    - staticcheck   # includes gosimple
     - ineffassign
     - unused
     - gosec
@@ -16,7 +17,8 @@ linters:
 linters-settings:
   gosec:
     excludes:
-      - G401  # Use of weak cryptographic primitive (not applicable here)
+      - G401
+      - G706  # log injection false positive for standard HTTP request logging
 
 issues:
   exclude-rules:

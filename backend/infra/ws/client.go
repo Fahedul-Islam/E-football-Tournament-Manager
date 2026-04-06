@@ -18,5 +18,5 @@ func (c *Client) WritePump() {
 			break
 		}
 	}
-	c.Conn.Close()
+	_ = c.Conn.Close()
 }

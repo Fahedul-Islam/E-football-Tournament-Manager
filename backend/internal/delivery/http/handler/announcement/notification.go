@@ -7,14 +7,8 @@ import (
 )
 
 func (h *AnnouncementHandler) Notifications(w http.ResponseWriter, r *http.Request) {
-	userIDStr, ok := r.Context().Value("user_id").(string)
+	userID, ok := userIDFromCtx(w, r)
 	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	userID, err := strconv.Atoi(userIDStr)
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
 		return
 	}
 
@@ -40,14 +34,8 @@ func (h *AnnouncementHandler) Notifications(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *AnnouncementHandler) MarkNotificationAsRead(w http.ResponseWriter, r *http.Request) {
-	userIDStr, ok := r.Context().Value("user_id").(string)
+	userID, ok := userIDFromCtx(w, r)
 	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	userID, err := strconv.Atoi(userIDStr)
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
 		return
 	}
 
@@ -63,8 +51,7 @@ func (h *AnnouncementHandler) MarkNotificationAsRead(w http.ResponseWriter, r *h
 		return
 	}
 
-	err = h.announcementService.MarkNotificationAsRead(r.Context(), notificationID, userID)
-	if err != nil {
+	if err := h.announcementService.MarkNotificationAsRead(r.Context(), notificationID, userID); err != nil {
 		http.Error(w, "Failed to mark notification as read: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -73,19 +60,12 @@ func (h *AnnouncementHandler) MarkNotificationAsRead(w http.ResponseWriter, r *h
 }
 
 func (h *AnnouncementHandler) MarkAllNotificationsAsRead(w http.ResponseWriter, r *http.Request) {
-	userIDStr, ok := r.Context().Value("user_id").(string)
+	userID, ok := userIDFromCtx(w, r)
 	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	userID, err := strconv.Atoi(userIDStr)
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
 		return
 	}
 
-	err = h.announcementService.MarkAllNotificationsAsRead(r.Context(), userID)
-	if err != nil {
+	if err := h.announcementService.MarkAllNotificationsAsRead(r.Context(), userID); err != nil {
 		http.Error(w, "Failed to mark all notifications as read: "+err.Error(), http.StatusInternalServerError)
 		return
 	}

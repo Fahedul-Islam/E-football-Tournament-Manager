@@ -38,7 +38,7 @@ func (r *tournamentManagerRepo) GetAllTournaments(ctx context.Context, tournamen
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var tournaments []*domain.Tournament
 	for rows.Next() {

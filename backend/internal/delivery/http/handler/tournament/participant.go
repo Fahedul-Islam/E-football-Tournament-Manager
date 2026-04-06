@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"tournament-manager/internal/delivery/http/middleware"
 	"tournament-manager/internal/domain"
 	"tournament-manager/utils"
 )
@@ -24,7 +25,7 @@ func (h *TournamentManagerHandler) GetAllParticipant(w http.ResponseWriter, r *h
 }
 
 func (h *TournamentManagerHandler) AddParticipant(w http.ResponseWriter, r *http.Request) {
-	id, ok := r.Context().Value("user_id").(string)
+	id, ok := r.Context().Value(middleware.ContextKeyUserID).(string)
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -47,7 +48,7 @@ func (h *TournamentManagerHandler) AddParticipant(w http.ResponseWriter, r *http
 }
 
 func (h *TournamentManagerHandler) ApproveParticipant(w http.ResponseWriter, r *http.Request) {
-	id, ok := r.Context().Value("user_id").(string)
+	id, ok := r.Context().Value(middleware.ContextKeyUserID).(string)
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -71,7 +72,7 @@ func (h *TournamentManagerHandler) ApproveParticipant(w http.ResponseWriter, r *
 }
 
 func (h *TournamentManagerHandler) RejectParticipant(w http.ResponseWriter, r *http.Request) {
-	str_t_owner_id, ok := r.Context().Value("user_id").(string)
+	str_t_owner_id, ok := r.Context().Value(middleware.ContextKeyUserID).(string)
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -94,7 +95,7 @@ func (h *TournamentManagerHandler) RejectParticipant(w http.ResponseWriter, r *h
 }
 
 func (h *TournamentManagerHandler) RemoveParticipant(w http.ResponseWriter, r *http.Request) {
-	str_t_owner_id, ok := r.Context().Value("user_id").(string)
+	str_t_owner_id, ok := r.Context().Value(middleware.ContextKeyUserID).(string)
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return

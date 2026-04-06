@@ -13,7 +13,7 @@ func (r *tournamentManagerRepo) GetAllParticipant(ctx context.Context, tournamen
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var participants []*domain.Participant
 	for rows.Next() {
@@ -62,7 +62,7 @@ func (r *tournamentManagerRepo) AddParticipant(ctx context.Context, tournament_o
 		CreatedAt:    now,
 	}
 	query := `INSERT INTO participants (user_id, tournament_id, team_name, status, created_at) VALUES ($1, $2, $3, $4, $5) RETURNING id`
-	return r.db.QueryRow(query, addedParticipant.UserID, addedParticipant.TournamentID, addedParticipant.TeamName, addedParticipant.Status, addedParticipant.CreatedAt).Scan(&addedParticipant.ID)
+	return r.db.QueryRowContext(ctx, query, addedParticipant.UserID, addedParticipant.TournamentID, addedParticipant.TeamName, addedParticipant.Status, addedParticipant.CreatedAt).Scan(&addedParticipant.ID)
 }
 
 func (r *tournamentManagerRepo) ApproveParticipant(ctx context.Context, tournament_owner_id int, req domain.ParticipantRequest) error {
@@ -101,7 +101,7 @@ func (r *tournamentManagerRepo) GetApprovedParticipants(ctx context.Context, tou
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var participants []*domain.Participant
 	for rows.Next() {

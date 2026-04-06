@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"math/rand"
-	"time"
 )
 
 func (r *tournamentManagerRepo) GenerateKnockoutStage(ctx context.Context, tournament_id int) (bool, error) {
@@ -14,7 +13,7 @@ func (r *tournamentManagerRepo) GenerateKnockoutStage(ctx context.Context, tourn
 	if err != nil {
 		return false, fmt.Errorf("failed to fetch groups: %w", err)
 	}
-	defer groupRows.Close()
+	defer func() { _ = groupRows.Close() }()
 
 	var groupIDs []int
 	for groupRows.Next() {
@@ -32,10 +31,10 @@ func (r *tournamentManagerRepo) GenerateKnockoutStage(ctx context.Context, tourn
 	var qualifiedPlayers []int
 	for _, gid := range groupIDs {
 		rows, err := r.db.QueryContext(ctx, `
-			SELECT participant_id 
-			FROM player_stats 
-			WHERE group_id = $1 
-			ORDER BY points DESC, goal_difference DESC, goals_scored DESC 
+			SELECT participant_id
+			FROM player_stats
+			WHERE group_id = $1
+			ORDER BY points DESC, goal_difference DESC, goals_scored DESC
 			LIMIT 2
 		`, gid)
 		if err != nil {
@@ -45,13 +44,14 @@ func (r *tournamentManagerRepo) GenerateKnockoutStage(ctx context.Context, tourn
 		for rows.Next() {
 			var pid int
 			if err := rows.Scan(&pid); err != nil {
-				rows.Close()
+				_ = rows.Close()
 				return false, fmt.Errorf("failed to scan participant ID: %w", err)
 			}
 			qualifiedPlayers = append(qualifiedPlayers, pid)
 		}
-		rows.Close()
+		_ = rows.Close()
 	}
+
 	var next_round string
 	if len(qualifiedPlayers) == 16 {
 		next_round = "Round of 16"
@@ -66,33 +66,32 @@ func (r *tournamentManagerRepo) GenerateKnockoutStage(ctx context.Context, tourn
 	}
 
 	// 3️⃣ Randomize the qualified participants for fairness
-	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(qualifiedPlayers), func(i, j int) {
 		qualifiedPlayers[i], qualifiedPlayers[j] = qualifiedPlayers[j], qualifiedPlayers[i]
 	})
 
 	// 4️⃣ Begin transaction
-	tx, err := r.db.Begin()
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return false, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	// 5️⃣ Prepare insert for Round of 16
-	stmt, err := tx.Prepare(`
+	// 5️⃣ Prepare insert for knockout stage
+	stmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO matches (tournament_id, group_id, round, participant_a_id, participant_b_id, status)
 		VALUES ($1, $2, $3, $4, $5, 'scheduled')
 	`)
 	if err != nil {
 		return false, fmt.Errorf("failed to prepare insert: %w", err)
 	}
-	defer stmt.Close()
+	defer func() { _ = stmt.Close() }()
 
-	// 6️⃣ Create 8 Round of 16 matches (pairing players)
+	// 6️⃣ Create knockout matches (pairing players)
 	for i := 0; i < len(qualifiedPlayers); i += 2 {
 		a := qualifiedPlayers[i]
 		b := qualifiedPlayers[i+1]
-		if _, err := stmt.Exec(tournament_id, nil, next_round, a, b); err != nil {
+		if _, err := stmt.ExecContext(ctx, tournament_id, nil, next_round, a, b); err != nil {
 			return false, fmt.Errorf("failed to insert knockout-stage match: %w", err)
 		}
 	}
@@ -108,8 +107,8 @@ func (r *tournamentManagerRepo) GenerateKnockoutStage(ctx context.Context, tourn
 func (r *tournamentManagerRepo) GenerateQuarterFinals(ctx context.Context, tournament_id int) (bool, error) {
 	// 1️⃣ Fetch winners from Round of 16
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT 
-			CASE 
+		SELECT
+			CASE
 				WHEN participant_a_score > participant_b_score THEN participant_a_id
 				WHEN participant_b_score > participant_a_score THEN participant_b_id
 				ELSE NULL
@@ -120,7 +119,7 @@ func (r *tournamentManagerRepo) GenerateQuarterFinals(ctx context.Context, tourn
 	if err != nil {
 		return false, fmt.Errorf("failed to fetch round of 16 results: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var winners []int
 	for rows.Next() {
@@ -139,31 +138,29 @@ func (r *tournamentManagerRepo) GenerateQuarterFinals(ctx context.Context, tourn
 	}
 
 	// 3️⃣ Shuffle winners to randomize pairings
-	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(winners), func(i, j int) {
 		winners[i], winners[j] = winners[j], winners[i]
 	})
 
 	// 4️⃣ Begin transaction
-	tx, err := r.db.Begin()
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return false, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	stmt, err := tx.Prepare(`
+	stmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO matches (tournament_id, group_id, round, participant_a_id, participant_b_id)
 		VALUES ($1, $2, $3, $4, $5)
 	`)
 	if err != nil {
 		return false, fmt.Errorf("failed to prepare insert statement: %w", err)
 	}
-	defer stmt.Close()
+	defer func() { _ = stmt.Close() }()
 
 	// 5️⃣ Create 4 Quarterfinal matches
 	for i := 0; i < len(winners); i += 2 {
-		_, err := stmt.Exec(tournament_id, nil, "Quarterfinals", winners[i], winners[i+1])
-		if err != nil {
+		if _, err := stmt.ExecContext(ctx, tournament_id, nil, "Quarterfinals", winners[i], winners[i+1]); err != nil {
 			return false, fmt.Errorf("failed to insert quarterfinal match: %w", err)
 		}
 	}
@@ -178,8 +175,8 @@ func (r *tournamentManagerRepo) GenerateQuarterFinals(ctx context.Context, tourn
 
 func (r *tournamentManagerRepo) GenerateSemiFinals(ctx context.Context, tournament_id int) (bool, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT 
-			CASE 
+		SELECT
+			CASE
 				WHEN participant_a_score > participant_b_score THEN participant_a_id
 				WHEN participant_b_score > participant_a_score THEN participant_b_id
 				ELSE NULL
@@ -190,7 +187,7 @@ func (r *tournamentManagerRepo) GenerateSemiFinals(ctx context.Context, tourname
 	if err != nil {
 		return false, fmt.Errorf("failed to fetch quarterfinal results: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var winners []int
 	for rows.Next() {
@@ -207,29 +204,27 @@ func (r *tournamentManagerRepo) GenerateSemiFinals(ctx context.Context, tourname
 		return false, fmt.Errorf("expected 4 winners from Quarterfinals, got %d", len(winners))
 	}
 
-	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(winners), func(i, j int) {
 		winners[i], winners[j] = winners[j], winners[i]
 	})
 
-	tx, err := r.db.Begin()
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return false, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	stmt, err := tx.Prepare(`
+	stmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO matches (tournament_id, group_id, round, participant_a_id, participant_b_id)
 		VALUES ($1, $2, $3, $4, $5)
 	`)
 	if err != nil {
 		return false, fmt.Errorf("failed to prepare insert statement: %w", err)
 	}
-	defer stmt.Close()
+	defer func() { _ = stmt.Close() }()
 
 	for i := 0; i < len(winners); i += 2 {
-		_, err := stmt.Exec(tournament_id, -1, "Semifinals", winners[i], winners[i+1])
-		if err != nil {
+		if _, err := stmt.ExecContext(ctx, tournament_id, -1, "Semifinals", winners[i], winners[i+1]); err != nil {
 			return false, fmt.Errorf("failed to insert semifinal match: %w", err)
 		}
 	}
@@ -243,8 +238,8 @@ func (r *tournamentManagerRepo) GenerateSemiFinals(ctx context.Context, tourname
 
 func (r *tournamentManagerRepo) GenerateFinal(ctx context.Context, tournament_id int) (bool, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT 
-			CASE 
+		SELECT
+			CASE
 				WHEN participant_a_score > participant_b_score THEN participant_a_id
 				WHEN participant_b_score > participant_a_score THEN participant_b_id
 				ELSE NULL
@@ -255,7 +250,7 @@ func (r *tournamentManagerRepo) GenerateFinal(ctx context.Context, tournament_id
 	if err != nil {
 		return false, fmt.Errorf("failed to fetch semifinal results: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var winners []int
 	for rows.Next() {

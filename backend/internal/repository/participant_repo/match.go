@@ -19,7 +19,7 @@ func (r *participantRepo) GetGroupDistribution(ctx context.Context, tournament_i
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	groupMap := make(map[int]*domain.Group)
 	for rows.Next() {
@@ -69,7 +69,7 @@ func (r *participantRepo) GetMatchSchedule(ctx context.Context, tournament_id in
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var matches []*domain.Match
 	for rows.Next() {

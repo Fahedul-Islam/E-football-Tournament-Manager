@@ -9,16 +9,16 @@ import (
 // CreateTournament creates a new tournament
 func (s *service) CreateTournament(ctx context.Context, createdBy int, req domain.TournamentCreateRequest) error {
 	if req.TournamentType != "knockout" && req.TournamentType != "league" && req.TournamentType != "group+knockout" {
-		return errors.New("Invalid Tournament Type!")
+		return errors.New("invalid tournament type")
 	}
 	if req.MaxPlayers < 3 {
-		return errors.New("Not enough players!")
+		return errors.New("not enough players")
 	}
 	if req.MaxPlayers > 64 {
-		return errors.New("Too many players!")
+		return errors.New("too many players")
 	}
 	if req.Description == "" || req.Name == "" || len(req.Description) < 50 {
-		return errors.New("Name and description must be filled, and description must be at least 50 characters long!")
+		return errors.New("name and description must be filled, and description must be at least 50 characters long")
 	}
 	return s.tournamentRepo.CreateTournament(ctx, createdBy, req)
 }
@@ -36,16 +36,16 @@ func (s *service) GetAllTournaments(ctx context.Context, tournamentOwnerID int) 
 // UpdateTournament updates a tournament
 func (s *service) UpdateTournament(ctx context.Context, tournamentOwnerID int, tournamentID int, req domain.TournamentCreateRequest) error {
 	if req.TournamentType != "knockout" && req.TournamentType != "league" && req.TournamentType != "group+knockout" {
-		return errors.New("Invalid Tournament Type!")
+		return errors.New("invalid tournament type")
 	}
 	if req.MaxPlayers < 3 {
-		return errors.New("Not enough players!")
+		return errors.New("not enough players")
 	}
 	if req.MaxPlayers > 64 {
-		return errors.New("Too many players!")
+		return errors.New("too many players")
 	}
 	if req.Description == "" || req.Name == "" || len(req.Description) < 50 {
-		return errors.New("Name and description must be filled, and description must be at least 50 characters long!")
+		return errors.New("name and description must be filled, and description must be at least 50 characters long")
 	}
 	return s.tournamentRepo.UpdateTournament(ctx, tournamentOwnerID, tournamentID, req)
 }

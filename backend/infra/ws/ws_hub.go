@@ -29,9 +29,8 @@ func (h *Hub) Run() {
 		case client := <-h.Unregister:
 			if _, ok := h.Clients[client.UserID]; ok {
 				close(client.Send)
-				client.Conn.Close()
+				_ = client.Conn.Close()
 				delete(h.Clients, client.UserID)
-
 			}
 		case notification := <-h.Broadcast:
 			if client, ok := h.Clients[notification.UserID]; ok {
@@ -39,7 +38,7 @@ func (h *Hub) Run() {
 				case client.Send <- notification.Message:
 				default:
 					close(client.Send)
-					client.Conn.Close()
+					_ = client.Conn.Close()
 					delete(h.Clients, notification.UserID)
 				}
 			}

@@ -21,7 +21,7 @@ func (r *announcementRepo) GetAllParticipant(ctx context.Context, tournamentID i
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var participants []*domain.Participant
 	for rows.Next() {

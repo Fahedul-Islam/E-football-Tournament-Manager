@@ -10,7 +10,7 @@ func (r *announcementRepo) AddComment(ctx context.Context, announcementID int, u
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	var commentID int
 	err = tx.QueryRowContext(ctx, "INSERT INTO announcement_comments (announcement_id, user_id, parent_comment_id, content) VALUES ($1, $2, $3, $4) RETURNING id", announcementID, userID, parentCommentID, content).Scan(&commentID)
 	if err != nil {
@@ -49,7 +49,7 @@ func (r *announcementRepo) GetComments(ctx context.Context, announcementID int, 
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var comments []*domain.AnnouncementComment
 	for rows.Next() {
@@ -68,7 +68,7 @@ func (r *announcementRepo) DeleteComment(ctx context.Context, commentID int) err
     if err != nil {
         return err
     }
-    defer tx.Rollback()
+    defer func() { _ = tx.Rollback() }()
 
     // 1. Get announcement_id from the comment itself
     var announcementID int

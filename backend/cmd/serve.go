@@ -65,7 +65,7 @@ func Serve() {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, `{"status":"ok","db":"connected"}`)
+		_, _ = fmt.Fprint(w, `{"status":"ok","db":"connected"}`)
 	})
 
 	// Initialize repositories

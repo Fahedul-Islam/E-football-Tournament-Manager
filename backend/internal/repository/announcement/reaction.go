@@ -13,7 +13,7 @@ func (r *announcementRepo) ReactOnAnnouncement(ctx context.Context, tournamentID
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	switch reaction {
 	case "like":
@@ -53,7 +53,7 @@ func (r *announcementRepo) RemoveAnnouncementReaction(ctx context.Context, tourn
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	// Delete the reaction
 	_, err = tx.ExecContext(ctx, "DELETE FROM announcement_reactions WHERE announcement_id=$1 AND user_id=$2", announcementID, userID)
@@ -93,7 +93,7 @@ func (r *announcementRepo) ReactToComment(ctx context.Context, commentID int, us
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	_, err = tx.ExecContext(ctx, "INSERT INTO announcement_comment_reactions (comment_id, user_id, reaction_type) VALUES ($1, $2, $3) ON CONFLICT (comment_id, user_id) DO NOTHING", commentID, userID, reactionType)
 	if err != nil {
 		return nil, err
@@ -128,7 +128,7 @@ func (r *announcementRepo) RemoveReactionFromComment(ctx context.Context, commen
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 	var reactionType string
 	err = tx.QueryRowContext(ctx, "SELECT reaction_type FROM announcement_comment_reactions WHERE comment_id=$1 AND user_id=$2", commentID, userID).Scan(&reactionType)
 	if err != nil {

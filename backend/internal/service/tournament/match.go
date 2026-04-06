@@ -15,7 +15,7 @@ func (s *service) LeagueStyleSchedule(ctx context.Context, tournamentID int) err
 		return err
 	}
 	if len(approvedParticipants) < 2 {
-		return errors.New("Not enough approved participants to create match schedules")
+		return errors.New("not enough approved participants to create match schedules")
 	}
 	return s.tournamentRepo.LeagueStyleSchedule(ctx, tournamentID, approvedParticipants)
 }
@@ -37,7 +37,7 @@ func (s *service) CreateMatchSchedules(ctx context.Context, tournamentID int, to
 		return err
 	}
 	if len(approvedParticipants) < 2 {
-		return errors.New("Not enough approved participants to create match schedules")
+		return errors.New("not enough approved participants to create match schedules")
 	}
 
 	// check tournament type
@@ -51,7 +51,7 @@ func (s *service) CreateMatchSchedules(ctx context.Context, tournamentID int, to
 	}
 
 	if groupCount < 1 || groupCount > 8 || groupCount%2 != 0 {
-		return errors.New("Group count must be between 1 and 8 and an even number")
+		return errors.New("group count must be between 1 and 8 and an even number")
 	}
 	return s.tournamentRepo.CreateMatchSchedules(ctx, tournamentID, groupCount, approvedParticipants)
 }
@@ -69,7 +69,7 @@ func (s *service) GetAllMatches(ctx context.Context, tournamentID int) ([]*domai
 // UpdateScore updates the score for a match
 func (s *service) UpdateScore(ctx context.Context, tournamentOwnerID int, req *domain.UpdateMatchScoreInput) (*domain.UpdateMatchScoreInput, error) {
 	if (req.Round == domain.RoundOf16 || req.Round == domain.QuarterFinals || req.Round == domain.Semifinals || req.Round == domain.Final) && (req.ScoreA == req.ScoreB) {
-		return nil, errors.New("Score must be different for knockout rounds")
+		return nil, errors.New("score must be different for knockout rounds")
 	}
 
 	result, err := s.tournamentRepo.UpdateScore(ctx, tournamentOwnerID, req)
@@ -102,7 +102,7 @@ func (s *service) UpdateScore(ctx context.Context, tournamentOwnerID int, req *d
 		case domain.Final:
 			fmt.Println("Tournament has concluded.")
 		default:
-			return nil, errors.New("Unknown round")
+			return nil, errors.New("unknown round")
 		}
 
 		if err != nil {

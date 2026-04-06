@@ -15,9 +15,9 @@ func (r *tournamentManagerRepo) GenerateGroups(ctx context.Context, tournament_i
 	}
 	defer func() {
 		if err != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 		} else {
-			tx.Commit()
+			_ = tx.Commit()
 		}
 	}()
 

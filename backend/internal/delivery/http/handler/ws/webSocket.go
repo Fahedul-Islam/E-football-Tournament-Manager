@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"tournament-manager/infra/ws"
+	"tournament-manager/internal/delivery/http/middleware"
 
 	"github.com/gorilla/websocket"
 )
@@ -22,14 +23,14 @@ func (h *WebSocketHandler) HandleWebSocket(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	userIDStr, ok := r.Context().Value("user_id").(string)
+	userIDStr, ok := r.Context().Value(middleware.ContextKeyUserID).(string)
 	if !ok {
-		conn.Close()
+		_ = conn.Close()
 		return
 	}
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return
 	}
 	client := &ws.Client{
@@ -50,5 +51,4 @@ func (h *WebSocketHandler) HandleWebSocket(w http.ResponseWriter, r *http.Reques
 			break
 		}
 	}
-
 }

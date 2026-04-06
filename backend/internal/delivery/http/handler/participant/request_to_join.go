@@ -3,6 +3,7 @@ package participant
 import (
 	"net/http"
 	"strconv"
+	"tournament-manager/internal/delivery/http/middleware"
 	"tournament-manager/internal/domain"
 	"tournament-manager/utils"
 )
@@ -20,7 +21,11 @@ func (h *ParticipantHandler) RequestToJoin(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Team name is required", http.StatusBadRequest)
 		return
 	}
-	str_user_id := r.Context().Value("user_id").(string)
+	str_user_id, ok := r.Context().Value(middleware.ContextKeyUserID).(string)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	user_id, err := strconv.Atoi(str_user_id)
 	if err != nil {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)

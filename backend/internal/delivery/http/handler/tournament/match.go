@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"tournament-manager/internal/delivery/http/middleware"
 	"tournament-manager/internal/domain"
 	"tournament-manager/utils"
 )
@@ -16,7 +17,7 @@ func (h *TournamentManagerHandler) CreateMatchSchedules(w http.ResponseWriter, r
 		http.Error(w, "Invalid tournament ID", http.StatusBadRequest)
 		return
 	}
-	str_t_owner_id, ok := r.Context().Value("user_id").(string)
+	str_t_owner_id, ok := r.Context().Value(middleware.ContextKeyUserID).(string)
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -59,7 +60,7 @@ func (h *TournamentManagerHandler) LeagueStyleSchedule(w http.ResponseWriter, r 
 
 // UpdateScore updates the score of a match and advances the tournament if necessary
 func (h *TournamentManagerHandler) UpdateScore(w http.ResponseWriter, r *http.Request) {
-	str_t_owner_id, ok := r.Context().Value("user_id").(string)
+	str_t_owner_id, ok := r.Context().Value(middleware.ContextKeyUserID).(string)
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return

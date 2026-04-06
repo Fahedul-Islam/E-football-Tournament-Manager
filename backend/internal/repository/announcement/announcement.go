@@ -28,7 +28,7 @@ func (r *announcementRepo) GetAnnouncements(ctx context.Context, tournamentID in
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var announcements []*domain.Announcement
 	for rows.Next() {
@@ -46,7 +46,7 @@ func (r *announcementRepo) GetAnnouncementByID(ctx context.Context, tournamentID
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	// Mark the announcement as seen by the user, if not already marked
 	_, err = tx.ExecContext(ctx, "INSERT INTO announcement_seen (announcement_id, user_id, is_seen, seen_at) VALUES ($1, $2, true, NOW()) ON CONFLICT (announcement_id, user_id) DO NOTHING", announcementID, userID)
@@ -114,7 +114,7 @@ func (r *announcementRepo) GetParticipantsAnnouncementSeenStatus(ctx context.Con
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var participants []domain.Participant
 	for rows.Next() {
@@ -149,7 +149,7 @@ func (r *announcementRepo) GetNotifications(ctx context.Context, userID int, pag
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var notifications []*domain.Notification
 	for rows.Next() {

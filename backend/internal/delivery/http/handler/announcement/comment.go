@@ -19,9 +19,8 @@ func (h *AnnouncementHandler) CommentOnAnnouncement(w http.ResponseWriter, r *ht
 		http.Error(w, "Invalid announcement_id", http.StatusBadRequest)
 		return
 	}
-	userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+	userID, ok := userIDFromCtx(w, r)
+	if !ok {
 		return
 	}
 
@@ -50,9 +49,8 @@ func (h *AnnouncementHandler) GetComments(w http.ResponseWriter, r *http.Request
 		http.Error(w, "Invalid announcement_id", http.StatusBadRequest)
 		return
 	}
-	userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+	userID, ok := userIDFromCtx(w, r)
+	if !ok {
 		return
 	}
 
@@ -86,9 +84,8 @@ func (h *AnnouncementHandler) DeleteComment(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "Invalid comment_id", http.StatusBadRequest)
 		return
 	}
-	userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+	userID, ok := userIDFromCtx(w, r)
+	if !ok {
 		return
 	}
 
@@ -110,9 +107,8 @@ func (h *AnnouncementHandler) EditComment(w http.ResponseWriter, r *http.Request
 		http.Error(w, "Invalid comment_id", http.StatusBadRequest)
 		return
 	}
-	userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+	userID, ok := userIDFromCtx(w, r)
+	if !ok {
 		return
 	}
 
@@ -141,9 +137,8 @@ func (h *AnnouncementHandler) ReactToComment(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Invalid comment_id", http.StatusBadRequest)
 		return
 	}
-	userID, err := strconv.Atoi(r.Context().Value("user_id").(string))
-	if err != nil {
-		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+	userID, ok := userIDFromCtx(w, r)
+	if !ok {
 		return
 	}
 	reaction := r.URL.Query().Get("reaction")
@@ -159,4 +154,3 @@ func (h *AnnouncementHandler) ReactToComment(w http.ResponseWriter, r *http.Requ
 	}
 	utils.SendData(w, comment, http.StatusOK)
 }
-

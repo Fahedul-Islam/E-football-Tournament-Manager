@@ -38,7 +38,7 @@ func Load() (*Config, error) {
 	if cfg != nil {
 		return cfg, nil
 	}
-	godotenv.Load() 
+	_ = godotenv.Load() // .env is optional; env vars may already be set in the environment
 	cfg = &Config{}
 
 	// Server config

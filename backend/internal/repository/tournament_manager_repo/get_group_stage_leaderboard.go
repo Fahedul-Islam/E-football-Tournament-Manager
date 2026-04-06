@@ -12,7 +12,7 @@ func (r *tournamentManagerRepo) GetLeaderboard(ctx context.Context, tournament_i
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var groupIDs []int
 	for rows.Next() {
@@ -37,7 +37,7 @@ func (r *tournamentManagerRepo) GetLeaderboard(ctx context.Context, tournament_i
 		if err != nil {
 			return nil, err
 		}
-		defer rows.Close()
+		defer func() { _ = rows.Close() }()
 
 		var groupLeaderboard []domain.PlayerStat
 

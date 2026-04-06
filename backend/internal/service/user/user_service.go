@@ -37,11 +37,11 @@ func (s *service) Register(ctx context.Context, user domain.User) error {
 		return err
 	}
 	if err := utils.ValidatePassword(user.PasswordHash); err != nil {
-		return errors.New("Invalid Password Provided")
+		return errors.New("invalid password provided")
 	}
 	hashedPassword, err := utils.HashPassword(user.PasswordHash)
 	if err != nil {
-		return errors.New("Failed to process password")
+		return errors.New("failed to process password")
 	}
 	user.PasswordHash = hashedPassword
 	return s.userRepo.Register(ctx, user)

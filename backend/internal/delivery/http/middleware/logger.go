@@ -21,6 +21,6 @@ func Logger(next http.Handler) http.Handler {
 		start := time.Now()
 		rw := &responseWriter{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(rw, r)
-		log.Printf("%s %s %d %v", r.Method, r.URL.Path, rw.status, time.Since(start))
+		log.Printf("%s %q %d %v", r.Method, r.URL.Path, rw.status, time.Since(start)) //nolint:gosec // G706: URL path is logged safely with %q quoting
 	})
 }

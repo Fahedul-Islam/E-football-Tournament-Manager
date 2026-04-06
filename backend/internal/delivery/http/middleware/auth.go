@@ -64,10 +64,10 @@ func AuthMiddleware(requiredRole string) func(http.Handler) http.Handler {
 				http.Error(w, "Invalid user ID", http.StatusBadRequest)
 				return
 			}
-			// Add claims to context
-			ctx := context.WithValue(r.Context(), "user_id", userId)
-			ctx = context.WithValue(ctx, "email", claims["email"])
-			ctx = context.WithValue(ctx, "roles", claims["roles"])
+			// Add claims to context using typed keys to avoid collisions
+			ctx := context.WithValue(r.Context(), ContextKeyUserID, userId)
+			ctx = context.WithValue(ctx, ContextKeyEmail, claims["email"])
+			ctx = context.WithValue(ctx, ContextKeyRole, claims["roles"])
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
