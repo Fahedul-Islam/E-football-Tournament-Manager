@@ -18,9 +18,8 @@ linters:
       excludes:
         - G401
         - G706  # log injection false positive for standard HTTP request logging
-
-issues:
-  exclude-rules:
-    - path: "_test.go"
-      linters:
-        - gosec
+  exclusions:
+    rules:
+      - path: "_test.go"
+        linters:
+          - gosec
