@@ -13,12 +13,11 @@ linters:
     - gosec
     - bodyclose
     - noctx
-
-linters-settings:
-  gosec:
-    excludes:
-      - G401
-      - G706  # log injection false positive for standard HTTP request logging
+  settings:
+    gosec:
+      excludes:
+        - G401
+        - G706  # log injection false positive for standard HTTP request logging
 
 issues:
   exclude-rules:
