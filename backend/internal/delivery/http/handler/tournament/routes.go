@@ -6,6 +6,7 @@ import (
 )
 
 func (h *TournamentManagerHandler) RegisterRoutes(mux *http.ServeMux, manager *middleware.MiddlewareManager) {
+	//tournament routes
 	mux.Handle("POST /tournaments/create", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.CreateTournament)))
 	mux.Handle("GET /tournaments", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.AllTournaments)))
 	mux.Handle("DELETE /tournaments", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.DeleteTournament)))
@@ -15,6 +16,9 @@ func (h *TournamentManagerHandler) RegisterRoutes(mux *http.ServeMux, manager *m
 	mux.Handle("POST /tournaments/addparticipant", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.AddParticipant)))
 	mux.Handle("POST /tournaments/removeparticipant", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.RemoveParticipant)))
 	mux.Handle("GET /tournaments/participants", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.GetAllParticipant)))
+
+	mux.Handle("POST /tournament/generate-group", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.GenerateGroups)))
+	//match routes
 	mux.Handle("GET /tournaments/create_match_schedules", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.CreateMatchSchedules)))
 	mux.Handle("GET /tournaments/matches", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.GetAllMatches)))
 	mux.Handle("PATCH /tournaments/matche-score/update", manager.With(middleware.AuthMiddleware("admin"))(http.HandlerFunc(h.UpdateScore)))

@@ -27,13 +27,7 @@ func (h *TournamentManagerHandler) CreateMatchSchedules(w http.ResponseWriter, r
 		http.Error(w, "Invalid user id", http.StatusBadRequest)
 		return
 	}
-	cnt := r.URL.Query().Get("group_count")
-	groupCount, err := strconv.Atoi(cnt)
-	if err != nil {
-		http.Error(w, "Invalid group count", http.StatusBadRequest)
-		return
-	}
-	err = h.tournamentService.CreateMatchSchedules(r.Context(), tournament_id, tournament_owner_id, groupCount)
+	err = h.tournamentService.CreateMatchSchedules(r.Context(), tournament_id, tournament_owner_id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

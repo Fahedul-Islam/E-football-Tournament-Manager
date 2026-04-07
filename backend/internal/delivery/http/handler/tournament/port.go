@@ -17,8 +17,8 @@ type Service interface {
 	RemoveParticipant(ctx context.Context, tournament_owner_id int, req domain.ParticipantRequest) error
 	GetAllParticipant(ctx context.Context, tournament_id int) ([]*domain.Participant, error)
 	GetApprovedParticipants(ctx context.Context, tournament_id int) ([]*domain.Participant, error)
-	CreateMatchSchedules(ctx context.Context, tournament_id int, tournament_owner_id int, groupCount int) error
-	GenerateGroups(ctx context.Context, tournament_id int, groupCount int, approvedParticipants []*domain.Participant) error
+	CreateMatchSchedules(ctx context.Context, tournament_id int, tournament_owner_id int) error
+	GenerateGroups(ctx context.Context, tournament_id int, groupCount int, tournament_owner_id int) error
 	GetAllMatches(ctx context.Context, tournament_id int) ([]*domain.Match, error)
 	UpdateScore(ctx context.Context, tournament_owner_id int, req *domain.UpdateMatchScoreInput) (*domain.UpdateMatchScoreInput, error)
 	CheckAndAdvanceRound(ctx context.Context, tournament_id int, round string) (bool, error)

@@ -21,7 +21,7 @@ func (s *service) LeagueStyleSchedule(ctx context.Context, tournamentID int) err
 }
 
 // CreateMatchSchedules creates match schedules for a tournament
-func (s *service) CreateMatchSchedules(ctx context.Context, tournamentID int, tournament_owner_id int, groupCount int) error {
+func (s *service) CreateMatchSchedules(ctx context.Context, tournamentID int, tournament_owner_id int) error {
 	// verify permission
 	hasPermission, err := s.tournamentRepo.VerifyTournamentOwner(ctx, tournamentID, tournament_owner_id)
 	if err != nil {
@@ -50,15 +50,41 @@ func (s *service) CreateMatchSchedules(ctx context.Context, tournamentID int, to
 		return s.tournamentRepo.LeagueStyleSchedule(ctx, tournamentID, approvedParticipants)
 	}
 
-	if groupCount < 1 || groupCount > 8 || groupCount%2 != 0 {
-		return errors.New("group count must be between 1 and 8 and an even number")
+	// groups must already exist (created via /tournament/generate-group)
+	groupCount, err := s.tournamentRepo.GetGroupCount(ctx, tournamentID)
+	if err != nil {
+		return err
+	}
+	if groupCount == 0 {
+		return errors.New("no groups found — generate groups first via /tournament/generate-group")
 	}
 	return s.tournamentRepo.CreateMatchSchedules(ctx, tournamentID, groupCount, approvedParticipants)
 }
 
 // GenerateGroups generates groups for a tournament
-func (s *service) GenerateGroups(ctx context.Context, tournamentID int, groupCount int, approvedParticipants []*domain.Participant) error {
-	return s.tournamentRepo.GenerateGroups(ctx, tournamentID, groupCount, approvedParticipants)
+func (s *service) GenerateGroups(ctx context.Context, tournamentID int, groupCount int, tournament_owner_id int) error {
+	// verify permission
+	hasPermission, err := s.tournamentRepo.VerifyTournamentOwner(ctx, tournamentID, tournament_owner_id)
+	if err != nil {
+		return err
+	}
+	if !hasPermission {
+		return errors.New("you don't have permission to generate groups")
+	}
+	// get approved participants
+	var approvedParticipants []*domain.Participant
+	approvedParticipants, err = s.tournamentRepo.GetApprovedParticipants(ctx, tournamentID)
+	if err != nil {
+		return err
+	}
+	if len(approvedParticipants) < 2 {
+		return errors.New("not enough approved participants to generate groups")
+	}
+
+	if groupCount < 1 || groupCount > 8 || groupCount%2 != 0 {
+		return errors.New("group count must be between 1 and 8 and an even number")
+	}
+	return s.tournamentRepo.GenerateGroups(ctx, tournamentID,groupCount, approvedParticipants)
 }
 
 // GetAllMatches returns all matches for a tournament

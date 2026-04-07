@@ -8,12 +8,6 @@ import (
 )
 
 func (r *tournamentManagerRepo) CreateMatchSchedules(ctx context.Context, tournamentID int, groupCount int, approvedParticipants []*domain.Participant) error {
-	// 1️⃣ Generate groups first
-	if err := r.GenerateGroups(ctx, tournamentID, groupCount, approvedParticipants); err != nil {
-		return fmt.Errorf("failed to generate groups: %w", err)
-	}
-
-	// 2️⃣ Fetch all group IDs for this tournament
 	groupRows, err := r.db.QueryContext(ctx, `SELECT id FROM groups WHERE tournament_id = $1`, tournamentID)
 	if err != nil {
 		return fmt.Errorf("failed to fetch groups: %w", err)
